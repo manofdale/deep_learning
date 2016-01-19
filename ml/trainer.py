@@ -22,7 +22,7 @@ class Trainer(object):
                  output_count=1,
                  converters=[int_or_nan],
                  nan_handlers=[nan_to_mean], empty_str_handlers=[empty_to_mode],
-                 model=None, training_parameters=None, supervised=True):
+                 model=None, training_parameters=None, supervised=True, preprocessor=None):
         """Constructor
         
         Parameters:
@@ -46,6 +46,7 @@ class Trainer(object):
         self.training_parameters = training_parameters
         self.supervised = supervised
         self.output_count = output_count
+        self.preprocessor = preprocessor
 
         if refined_rows is not None and len(refined_rows) > 4:  # already have good data, ready to use for the model
             self.labels = refined_rows[0]
@@ -168,6 +169,8 @@ class Trainer(object):
         self.check_set_parameters()  # set default to any missing parameters
         if not hasattr(self, 'train_input'):
             self.split_dataset(reshape_input, reshape_output)
+        if self.preprocessor is not None:
+            self.preprocessor.fit(self.train_input)
         if prepare_model is not None:
             prepare_model(self.model, **kwargs)  # compile the architecture if not compiled yet
 

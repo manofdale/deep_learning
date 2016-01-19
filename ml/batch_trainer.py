@@ -5,7 +5,7 @@ import random
 from keras.callbacks import ModelCheckpoint, Callback
 from keras.models import Sequential
 
-from ml import model
+from ml import cnn_model
 from ml.trainer import Trainer
 
 PATH = '/home/agp/workspace/deep_learning/models/'
@@ -90,15 +90,15 @@ def train_forever():
 def batch_train(my_trainer, model_name_to_load, model_name_to_save, nb_epoch=10, **kwargs):
     dl_model = Sequential()
     print("batch train starts..")
-    model.prepare_model3(model=dl_model, nb_classes=my_trainer.training_parameters.nb_classes, hidden_layers=[2048],
-                         **kwargs)
+    cnn_model.prepare_model3(model=dl_model, nb_classes=my_trainer.training_parameters.nb_classes, hidden_layers=[2048],
+                             **kwargs)
     if model_name_to_save is None:
         logging.warning("model is running for the first time")
     elif isinstance(model_name_to_load, basestring):
         dl_model.load_weights(model_name_to_load)
 
-    my_trainer.prepare_for_training(model=dl_model, reshape_input=model.reshape_input,
-                                    reshape_output=model.reshape_str_output)
+    my_trainer.prepare_for_training(model=dl_model, reshape_input=cnn_model.reshape_input,
+                                    reshape_output=cnn_model.reshape_str_output)
     save_best = ModelCheckpoint(filepath=PATH + FILE_NAME_PREFIX + "_best.hdf5", verbose=1, save_best_only=True)
     score = my_trainer.train(callbacks=[save_best])
     print("end of batch training")

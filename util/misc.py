@@ -158,10 +158,10 @@ def contours_to_boxes(contours, rectangles, max_width, max_height, x_pad=0, y_pa
 def find_candidate_text_components(swt, input_image=None):
     lines = swt  # morph_swt(swt)
     lines.show()
-    raw_input("okidoki")
+    #raw_input("okidoki")
     if input_image is None:
         input_image = lines.invert()
-    mask = filter_contours(lines.invert(), input_image, invert=True, min_size=5)
+    mask = filter_contours(morph_swt(swt), input_image, invert=True, min_size=5)
     lines = mask.invert() + ((mask.invert() + input_image.invert()).invert()).invert()
     # time.sleep(5)
     return find_contours(lines.invert())
@@ -306,9 +306,9 @@ def filter_contours(image, input_image, invert=True, min_size=5):
     """TODO research on invariant features for filtering"""
     img = frame_image(image)
     img.show()
-    raw_input("img")
+    #raw_input("img")
     input_image.show()
-    raw_input("image")
+    #raw_input("image")
     area = image.width * image.height
     image_mask = Image((img.width, img.height))
     # print(area)
@@ -497,6 +497,7 @@ def filter_contours(image, input_image, invert=True, min_size=5):
     if blobs is None:
         return image_mask
     [image_mask.drawRectangle(*b.boundingBox(), color=(255, 255, 255), width=-1) for b in blobs]
+    image_mask.applyLayers().show()
     # img = image_mask.applyLayers().invert().erode(2) + (input_image + image_mask.applyLayers().invert().erode(2)).invert()
     return image_mask.applyLayers()
 
@@ -704,10 +705,11 @@ def test_filter_contours(image, dob=0, skip=True):
     swt = Image("SWT.png")
     lines = morph_swt(swt)
     lines.show()
-    filtered = filter_contours(lines.invert(), swt.invert(), invert=True, min_size=3)
+    raw_input("h")
+    filtered = filter_contours(lines, swt.invert(), invert=True, min_size=3)
     filtered.show()
-    # raw_input("dodo")
-
+    raw_input("dodo")
+#test_filter_contours("data/benchmark_images/butler_garage.png",dob=1)
 
 def find_cut_indexes(hor, threshold):
     cumulative_sum = CumulativeSum()
