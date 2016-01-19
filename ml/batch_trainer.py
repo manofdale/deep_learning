@@ -9,12 +9,12 @@ from ml import cnn_model
 from ml.trainer import Trainer
 
 PATH = '/home/agp/workspace/deep_learning/models/'
-FILE_NAME_PREFIX = 'combined_and_defaulted_2048_3_cnn_model_'
+FILE_NAME_PREFIX = 'combined_and_defaulted_512_6_cnn_model_'
 
 
 class LossHistory(Callback):
     def __init__(self):
-        self.losses=[]
+        self.losses = []
 
     def on_batch_end(self, batch, logs={}):
         self.losses.append(logs.get('loss'))
@@ -22,9 +22,9 @@ class LossHistory(Callback):
 
 def train_forever():
     train_csv = "/home/agp/workspace/deep_learning/datasets/all_combined.csv"
-    nb_epoch = 60
-    current_i = 48
-    start_over = False
+    nb_epoch = 100
+    current_i = 0
+    start_over = True
 
     class Pack:
         pass
@@ -39,19 +39,20 @@ def train_forever():
     max_cnn_drop = 0.4
     max_dense_drop = 0.5
     dropout_rates = [0.25, 0.25, 0.5]
-    prep=ImageDataGenerator(
-        featurewise_center=True,  # set input mean to 0 over the dataset
-        samplewise_center=False,  # set each sample mean to 0
-        featurewise_std_normalization=True,  # divide inputs by std of the dataset
-        samplewise_std_normalization=False,  # divide each input by its std
-        zca_whitening=False,  # apply ZCA whitening
-        rotation_range=20,  # randomly rotate images in the range (degrees, 0 to 180)
-        width_shift_range=0.2,  # randomly shift images horizontally (fraction of total width)
-        height_shift_range=0.2,  # randomly shift images vertically (fraction of total height)
-        horizontal_flip=False,  # randomly flip images
-        vertical_flip=False)  # randomly flip images
+    prep = ImageDataGenerator(
+            featurewise_center=True,  # set input mean to 0 over the dataset
+            samplewise_center=False,  # set each sample mean to 0
+            featurewise_std_normalization=True,  # divide inputs by std of the dataset
+            samplewise_std_normalization=False,  # divide each input by its std
+            zca_whitening=False,  # apply ZCA whitening
+            rotation_range=20,  # randomly rotate images in the range (degrees, 0 to 180)
+            width_shift_range=0.2,  # randomly shift images horizontally (fraction of total width)
+            height_shift_range=0.2,  # randomly shift images vertically (fraction of total height)
+            horizontal_flip=False,  # randomly flip images
+            vertical_flip=False)  # randomly flip images
     my_trainer = Trainer(train_csv=train_csv, test_csv=None,
-                         converters=None, nan_handlers=None, empty_str_handlers=None, training_parameters=tp,preprocessor=prep)
+                         converters=None, nan_handlers=None, empty_str_handlers=None, training_parameters=tp,
+                         preprocessor=prep)
     files = glob.glob(PATH)
     if files is None or len(files) == 0 or start_over:
         batch_train(my_trainer, None, PATH + FILE_NAME_PREFIX + '%d_epoch.hdf5' % nb_epoch, dropout_rates=dropout_rates)
@@ -101,7 +102,7 @@ def train_forever():
 def batch_train(my_trainer, model_name_to_load, model_name_to_save, nb_epoch=10, **kwargs):
     dl_model = Sequential()
     print("batch train starts..")
-    cnn_model.prepare_model3(model=dl_model, nb_classes=my_trainer.training_parameters.nb_classes, hidden_layers=[2048],
+    cnn_model.prepare_model6(model=dl_model, nb_classes=my_trainer.training_parameters.nb_classes, hidden_layers=[512],
                              **kwargs)
     if model_name_to_save is None:
         logging.warning("model is running for the first time")
