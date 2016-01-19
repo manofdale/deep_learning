@@ -4,7 +4,7 @@ import random
 
 from keras.callbacks import ModelCheckpoint, Callback
 from keras.models import Sequential
-
+from keras.preprocessing.image import ImageDataGenerator
 from ml import cnn_model
 from ml.trainer import Trainer
 
@@ -39,8 +39,19 @@ def train_forever():
     max_cnn_drop = 0.4
     max_dense_drop = 0.5
     dropout_rates = [0.25, 0.25, 0.5]
+    prep=ImageDataGenerator(
+        featurewise_center=True,  # set input mean to 0 over the dataset
+        samplewise_center=False,  # set each sample mean to 0
+        featurewise_std_normalization=True,  # divide inputs by std of the dataset
+        samplewise_std_normalization=False,  # divide each input by its std
+        zca_whitening=False,  # apply ZCA whitening
+        rotation_range=20,  # randomly rotate images in the range (degrees, 0 to 180)
+        width_shift_range=0.2,  # randomly shift images horizontally (fraction of total width)
+        height_shift_range=0.2,  # randomly shift images vertically (fraction of total height)
+        horizontal_flip=False,  # randomly flip images
+        vertical_flip=False)  # randomly flip images
     my_trainer = Trainer(train_csv=train_csv, test_csv=None,
-                         converters=None, nan_handlers=None, empty_str_handlers=None, training_parameters=tp)
+                         converters=None, nan_handlers=None, empty_str_handlers=None, training_parameters=tp,preprocessor=prep)
     files = glob.glob(PATH)
     if files is None or len(files) == 0 or start_over:
         batch_train(my_trainer, None, PATH + FILE_NAME_PREFIX + '%d_epoch.hdf5' % nb_epoch, dropout_rates=dropout_rates)
