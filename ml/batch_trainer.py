@@ -31,6 +31,7 @@ class LReduce(Callback):
         self.verbose = verbose
         self.loss_history = []
         self.best_loss = np.Inf
+        self.previous = np.Inf
         self.patience = patience
         self.not_improved = 0.0
         self.lr_divide = lr_divide
@@ -39,19 +40,23 @@ class LReduce(Callback):
         assert hasattr(self.model.optimizer, 'lr'), \
             'Optimizer must have a "lr" attribute.'
         current = logs.get('val_loss')
-        if np.more(current, self.best_loss):
+        if np.more(current, self.previous):
             if self.not_improved > self.patience:
                 self.not_improved = 0.0
-                self.best_loss = current
+                self.previous = current
                 lr = self.model.optimizer.lr
                 if self.verbose > 0:
                     print("reducing learning rate %f to %f" % (lr, lr / self.lr_divide))
                 K.set_value(self.model.optimizer.lr, lr / self.lr_divide)
             else:
                 self.not_improved += 1
-        elif self.verbose > 0:
+        else:
             self.not_improved = 0.0
-            print("learning rate is good for now")
+            if np.less(current, self.best_loss):
+                lr = self.model.optimizer.lr
+                K.set_value(self.model.optimizer.lr, lr * (1 + self.lr_divide ** 0.2))
+            if self.verbose > 0:
+                print("learning rate is good for now")
 
 
 class LossHistory(Callback):
@@ -155,7 +160,7 @@ def batch_train(my_trainer, model_name_to_load, model_name_to_save, nb_epoch=10,
                                     reshape_output=cnn_model.reshape_str_output)
     save_best = ModelCheckpoint(filepath=PATH + FILE_NAME_PREFIX + "_best.hdf5", verbose=1, save_best_only=True)
     adjust_learning_rate = LReduce(verbose=1, patience=3, lr_divide=3.0)
-    score = my_trainer.train(callbacks=[save_best,adjust_learning_rate])
+    score = my_trainer.train(callbacks=[save_best, adjust_learning_rate])
     print("end of batch training")
     print(score)
     my_trainer.model.save_weights(model_name_to_save, overwrite=True)
