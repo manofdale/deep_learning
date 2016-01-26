@@ -3,13 +3,55 @@ import logging
 import random
 
 from keras.callbacks import ModelCheckpoint, Callback
+from keras import backend as K
 from keras.models import Sequential
 from keras.preprocessing.image import ImageDataGenerator
 from ml import cnn_model
 from ml.trainer import Trainer
+import numpy as np
 
 PATH = '/home/agp/workspace/deep_learning/models/'
 FILE_NAME_PREFIX = 'combined_and_defaulted_512_6_cnn_model_'
+
+
+class LReduce(Callback):
+    '''change the learning rate according to the loss history
+
+    For example: if `filepath` is `weights.{epoch:02d}-{val_loss:.2f}.hdf5`,
+    then multiple files will be save with the epoch number and
+    the validation loss.
+
+    # Arguments
+        monitor: quantity to monitor.
+        verbose: verbosity mode, 0 or 1.
+    '''
+
+    def __init__(self, verbose=0, patience=3, lr_divide=3.0):
+        super(Callback, self).__init__()
+        self.verbose = verbose
+        self.loss_history = []
+        self.best_loss = np.Inf
+        self.patience = patience
+        self.not_improved = 0.0
+        self.lr_divide = lr_divide
+
+    def on_epoch_end(self, epoch, logs={}):
+        assert hasattr(self.model.optimizer, 'lr'), \
+            'Optimizer must have a "lr" attribute.'
+        current = logs.get('val_loss')
+        if np.more(current, self.best_loss):
+            if self.not_improved > self.patience:
+                self.not_improved = 0.0
+                self.best_loss = current
+                lr = self.model.optimizer.lr
+                if self.verbose > 0:
+                    print("reducing learning rate %f to %f" % (lr, lr / self.lr_divide))
+                K.set_value(self.model.optimizer.lr, lr / self.lr_divide)
+            else:
+                self.not_improved += 1
+        elif self.verbose > 0:
+            self.not_improved = 0.0
+            print("learning rate is good for now")
 
 
 class LossHistory(Callback):
@@ -24,7 +66,7 @@ def train_forever():
     train_csv = "/home/agp/workspace/deep_learning/datasets/all_combined.csv"
     nb_epoch = 100
     current_i = 0
-    start_over = True
+    start_over = False
 
     class Pack:
         pass
@@ -61,7 +103,7 @@ def train_forever():
     while True:
         for i in range(current_i, 1999, nb_epoch):
             print("epoch:%d" % i)
-            model_name_to_load = PATH + FILE_NAME_PREFIX + str(i) + '_epoch.hdf5'
+            model_name_to_load = PATH + "combined_and_defaulted_512_6_cnn_model__best.hdf5"  # PATH + FILE_NAME_PREFIX + str(i) + '_epoch.hdf5'
             model_name_to_save = PATH + FILE_NAME_PREFIX + str(i + nb_epoch) + '_epoch.hdf5'
             print("old dropout_rates: " + ",".join([str(x) for x in dropout_rates]))
             score = batch_train(my_trainer, model_name_to_load, model_name_to_save, nb_epoch=nb_epoch,
@@ -112,7 +154,8 @@ def batch_train(my_trainer, model_name_to_load, model_name_to_save, nb_epoch=10,
     my_trainer.prepare_for_training(model=dl_model, reshape_input=cnn_model.reshape_input,
                                     reshape_output=cnn_model.reshape_str_output)
     save_best = ModelCheckpoint(filepath=PATH + FILE_NAME_PREFIX + "_best.hdf5", verbose=1, save_best_only=True)
-    score = my_trainer.train(callbacks=[save_best])
+    adjust_learning_rate = LReduce(verbose=1, patience=3, lr_divide=3.0)
+    score = my_trainer.train(callbacks=[save_best,adjust_learning_rate])
     print("end of batch training")
     print(score)
     my_trainer.model.save_weights(model_name_to_save, overwrite=True)

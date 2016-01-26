@@ -111,7 +111,7 @@ def get_vertical_params(image, x, y, width, height):
 
 def frame_image(image, color=(0, 0, 0), min_width=8):
     image.drawRectangle(0, 0, image.width - 3, image.height - 3,
-                        width=min(min_width, 1 + min(image.width, image.height) / 10),
+                        width=min(min_width, 1 + min(image.width, image.height) / 20),
                         color=color)
     return image.applyLayers()
 
@@ -155,13 +155,13 @@ def contours_to_boxes(contours, rectangles, max_width, max_height, x_pad=0, y_pa
     return rectangles
 
 
-def find_candidate_text_components(swt, input_image=None):
+def find_candidate_text_components(swt, input_image=None,level=0):
     lines = swt  # morph_swt(swt)
     lines.show()
-    #raw_input("okidoki")
+    # raw_input("okidoki")
     if input_image is None:
         input_image = lines.invert()
-    mask = filter_contours(morph_swt(swt), input_image, invert=True, min_size=5)
+    mask = filter_contours(swt.invert(), input_image, invert=True, min_size=5,level=level)
     lines = mask.invert() + ((mask.invert() + input_image.invert()).invert()).invert()
     # time.sleep(5)
     return find_contours(lines.invert())
@@ -182,7 +182,7 @@ def find_text_components(swt, input_image):
     # img.show()
     # swt.show()
     # raw_input("dodo")
-    contours = find_candidate_text_components(swt, input_image)
+    contours = find_candidate_text_components(swt, swt.morphClose().invert())
     candidate_boxes = []
     contours_to_boxes(contours, candidate_boxes, swt.width, swt.height)
     # decide whether the rectangle contains text
@@ -223,7 +223,7 @@ def get_components(input_image="image.jpg", dob=0):
                          input_image, 'result.png', '%d' % dob])
         subprocess.call(['mv', 'SWT.png', "%s_SWT.png" % input_image[:-4]])
 
-    return find_text_components("%s_SWT.png" % input_image[:-4], input_image)
+    return find_text_components(morph_swt(Image("%s_SWT.png" % input_image[:-4])).invert(), input_image)
     # with open("componentsWithBoxes.txt") as components:
     #    return [[point.strip().split(",") for point in line.strip().split(";")] for line in components]
 
@@ -302,13 +302,13 @@ def smart_filter(fs):
     return FeatureSet(sentences)
 
 
-def filter_contours(image, input_image, invert=True, min_size=5):
+def filter_contours(image, input_image, invert=True, min_size=5, level=0):
     """TODO research on invariant features for filtering"""
     img = frame_image(image)
-    img.show()
-    #raw_input("img")
-    input_image.show()
-    #raw_input("image")
+    # img.show()
+    # raw_input("img")
+    # input_image.show()
+    # raw_input("image")
     area = image.width * image.height
     image_mask = Image((img.width, img.height))
     # print(area)
@@ -407,29 +407,45 @@ def filter_contours(image, input_image, invert=True, min_size=5):
                 # print("no blobs inside")
                 continue
             for f2 in fs2:
-                if f2.aspectRatio() > 10:
+                if f2.aspectRatio() > 15:
                     weird_blob += 1
 
             # cropped.show()
             # raw_input("n%d,%d,%d" % (edges, rec_perimeter, f.perimeter()))
-            if True or not (abs(h - avg_height) > 5 * height_std or abs(w - avg_width) > 10 * width_std or
-                                    weird_blob > len(fs2) / 2 or abs(w * h - avg_rec_area) > 10 * rec_area_std or
+            if level>0 or not (abs(h - avg_height) > 3.5 * height_std or abs(w - avg_width) > 5.5 * width_std or
+                                    weird_blob > len(fs2) / 3.25 or abs(w * h - avg_rec_area) > 4 * rec_area_std or
                                     cropped.width > img.width * 0.9 or cropped.height > img.height * 0.9 or
-                                    edges < rec_perimeter or edges > blob_area * 3 or
-                                    abs(box_area - avg_blob_area) > 15 * blob_area_std or abs(
-                        edge_area_ratio - avg_edge_area_ratio) > 10 * edge_area_std or
-                                    abs(f.aspectRatio() - avg_aspect_ratio) > 10 * aspect_ratio_std or
-                                    f.aspectRatio() > 15 or blob_area > box_area * 0.9 or
-                                        3.15 * (f.perimeter() / 6.284) ** 2 <= blob_area or f.onImageEdge() or
-                                    colors[0][0] > 7 * colors[1][0] or (colors[0][0] + colors[1][0]) < 1.2 * sum(
+                                    edges < rec_perimeter or edges > blob_area * 2 or
+                                    abs(box_area - avg_blob_area) > 7.5 * blob_area_std or abs(
+                        edge_area_ratio - avg_edge_area_ratio) > 3 * edge_area_std or
+                                    abs(f.aspectRatio() - avg_aspect_ratio) > 5.5 * aspect_ratio_std or
+                                    f.aspectRatio() > 20 or
+                                        3.8 * (f.perimeter() / 6.284) ** 2 <= blob_area or f.onImageEdge() or (
+                colors[0][0] + colors[1][0]) < 1.2 * sum(
                     zip(*colors[2:])[0])):
                 img.drawRectangle(x, y, w, h, color=(127, 0, 0), width=2)
                 x1 = max(0, x - 8 * pad)
                 y1 = max(0, y - pad)
-                # print("image_mask%d,%d,%d,%d" % (x1, y1, min(w + 10 * pad, image_mask.width - x1),
-                #                                 min(h + 2 * pad, image_mask.height - y1)))
+
                 image_mask.drawRectangle(x1, y1, min(w + 16 * pad, image_mask.width - x1),
                                          min(h + 2 * pad, image_mask.height - y1), color=(255, 255, 255), width=-1)
+            elif not (cropped.width > img.width * 0.8 or cropped.height > img.height * 0.8):
+                filter_str = "%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d" % (
+                    abs(h - avg_height) > 5.5 * height_std, abs(w - avg_width) > 6.5 * width_std,
+                    weird_blob > len(fs2) / 3.25, abs(w * h - avg_rec_area) > 4 * rec_area_std,
+                    cropped.width > img.width * 0.9, cropped.height > img.height * 0.9,
+                    edges < rec_perimeter, edges > blob_area * 2,
+                    abs(box_area - avg_blob_area) > 7.5 * blob_area_std, abs(
+                            edge_area_ratio - avg_edge_area_ratio) > 3 * edge_area_std,
+                    abs(f.aspectRatio() - avg_aspect_ratio) > 5.5 * aspect_ratio_std,
+                    f.aspectRatio() > 20,
+                    3.8 * (f.perimeter() / 6.284) ** 2 <= blob_area, f.onImageEdge(),
+                    (colors[0][0] + colors[1][0]) < 1.2 * sum(
+                            zip(*colors[2:])[0]))
+                print(filter_str)
+                img.drawText(filter_str, x, y)
+                img.show()
+                #raw_input("d")
             """else:
                 if not (cropped.width > img.width * 0.8 or
                                 cropped.height > img.height * 0.8):
@@ -490,32 +506,36 @@ def filter_contours(image, input_image, invert=True, min_size=5):
     for box in rec:
         img.drawRectangle(*box)
     img.show()"""
-    kernel = np.ones((35, 45), np.uint8)
+    if level == 0:
+        kernel = np.ones((35, 45), np.uint8)
 
-    blobs = Image(cv2.morphologyEx(image_mask.applyLayers().dilate(2).invert().getNumpy(), cv2.MORPH_OPEN,
-                                   kernel)).invert().findBlobs()
-    if blobs is None:
-        return image_mask
-    [image_mask.drawRectangle(*b.boundingBox(), color=(255, 255, 255), width=-1) for b in blobs]
-    image_mask.applyLayers().show()
+        blobs = Image(cv2.morphologyEx(image_mask.applyLayers().dilate(2).invert().getNumpy(), cv2.MORPH_OPEN,
+                                       kernel)).invert().findBlobs()
+        if blobs is None:
+            return image_mask
+        [image_mask.drawRectangle(*b.boundingBox(), color=(255, 255, 255), width=-1) for b in blobs]
+    # image_mask.applyLayers().show()
     # img = image_mask.applyLayers().invert().erode(2) + (input_image + image_mask.applyLayers().invert().erode(2)).invert()
     return image_mask.applyLayers()
 
 
 def morph_swt(swt):
-    swt = (swt.threshold(80) * 0.4 + 20) + swt
+    # swt = (swt.threshold(80) * 0.4 + 20) + swt
     lines = swt
-    kernel1 = np.ones((1, 50), np.uint8)
+    # swt.show()
+    # raw_input("g")
+    kernel1 = np.ones((25, 1), np.uint8)
     # swt.erode().dilate().erode().dilate().show()
     # raw_input("g")
-    lines = Image(cv2.morphologyEx(swt.dilate().getNumpy(), cv2.MORPH_OPEN, kernel1))
-    kernel2 = np.ones((20, 1), np.uint8)
-    hors = Image(cv2.morphologyEx(swt.dilate().getNumpy(), cv2.MORPH_OPEN, kernel2))
+    lines = Image(cv2.morphologyEx(swt.morphClose().getNumpy(), cv2.MORPH_OPEN, kernel1))
+    kernel2 = np.ones((1, 6), np.uint8)
+    hors = Image(cv2.morphologyEx(swt.morphClose().getNumpy(), cv2.MORPH_OPEN, kernel2))
     (lines + hors).show()
     do = (lines + hors).invert() + swt.blur().dilate().erode().morphClose().invert()
-    do = Image(cv2.morphologyEx(do.getNumpy(), cv2.MORPH_CLOSE, np.ones((1, 12), np.uint8)))
+    # do = Image(cv2.morphologyEx(do.getNumpy(), cv2.MORPH_OPEN, np.ones((1, 6), np.uint8)))
     # do.gaussianBlur(window=(70, 1), sigmaX=8, sigmaY=8)
-    do.show()
+    # do.show()
+    # raw_input("hoho")
     return do
     Image(cv2.morphologyEx(do.invert().getNumpy(), cv2.MORPH_CLOSE, np.ones((1, 3), np.uint8))).show()
     return lines + hors
@@ -709,7 +729,9 @@ def test_filter_contours(image, dob=0, skip=True):
     filtered = filter_contours(lines, swt.invert(), invert=True, min_size=3)
     filtered.show()
     raw_input("dodo")
-#test_filter_contours("data/benchmark_images/butler_garage.png",dob=1)
+
+
+# test_filter_contours("data/benchmark_images/butler_garage.png",dob=1)
 
 def find_cut_indexes(hor, threshold):
     cumulative_sum = CumulativeSum()
@@ -1165,10 +1187,12 @@ def smart_rotate(image, bins=18, point=[-1, -1], auto=True, threshold=80, minLen
         point = [x, y]
     if -45 <= avg <= 45:
         return avg, image.rotate(avg, fixed=fixed, point=point)
-    elif avg > 45:
+    elif 90 > avg > 45:
         return avg - 90, image.rotate(avg - 90, fixed=fixed, point=point)
-    else:
+    elif -90 < avg < -45:
         return avg + 90, image.rotate(avg + 90, fixed=fixed, point=point)
+    else:
+        return 0, image
 
 
 def crop_padding(image):
