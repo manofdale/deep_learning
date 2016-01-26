@@ -138,6 +138,42 @@ def prepare_model6(model, img_rows=28, img_cols=28, nb_filters=42, nb_pool=2,
 
     model.compile(loss=loss_function, optimizer=optimizer)
 
+def prepare_model7(model, img_rows=28, img_cols=28, nb_filters=42, nb_pool=2,
+                   nb_conv=3, nb_classes=10, dropout_rates=[0.1, 0.2, 0.5],
+                   border_mode='same', optimizer='adadelta',
+                   loss_function='categorical_crossentropy',
+                   activation_functions=['relu', 'relu', 'relu', 'relu', 'softmax'], hidden_layers=[128]):
+    """setup architecture and prepare modelfor training
+    @param nb_filters: number of convolutional filters to use
+    @param nb_pool: size of pooling area for max pooling
+    @param nb_conv: convolution kernel size
+    """
+    model.add(Convolution2D(nb_filters, nb_conv, nb_conv,
+                            border_mode=border_mode,
+                            input_shape=(1, img_rows, img_cols)))
+    model.add(Activation(activation_functions[0]))
+    model.add(Convolution2D(nb_filters, nb_conv, nb_conv))
+    model.add(Activation(activation_functions[1]))
+    model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool)))
+    model.add(Dropout(dropout_rates[0]))
+    model.add(Convolution2D(nb_filters, nb_conv, nb_conv))
+    model.add(Activation(activation_functions[1]))
+    model.add(Convolution2D(nb_classes, nb_conv, nb_conv))
+    model.add(Activation(activation_functions[2]))
+    model.add(Convolution2D(nb_classes, nb_conv, nb_conv))
+    model.add(Activation(activation_functions[2]))
+    model.add(Convolution2D(nb_classes, nb_conv, nb_conv))
+    model.add(Activation(activation_functions[2]))
+    model.add(MaxPooling2D(pool_size=(nb_pool, nb_pool)))
+    model.add(Dropout(dropout_rates[1]))
+    model.add(Flatten())
+    model.add(Dense(hidden_layers[0]))
+    model.add(Activation(activation_functions[3]))
+    model.add(Dropout(dropout_rates[2]))
+    model.add(Dense(nb_classes))
+    model.add(Activation(activation_functions[4]))
+
+    model.compile(loss=loss_function, optimizer=optimizer)
 
 def prepare_model4(model, img_rows=28, img_cols=28, nb_filters=42, nb_pool=2,
                    nb_conv=3, nb_classes=10, dropout_rates=[0.1, 0.2, 0.5],
