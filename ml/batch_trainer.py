@@ -45,8 +45,8 @@ class LReduce(Callback):
         if not np.less(current, self.previous):
             if self.wait > self.patience:
                 self.wait = 0.0
-                self.previous = current
-                lr = self.model.optimizer.lr
+                lr = self.model.optimizer.get_config()["lr"]
+                print(lr,type(lr))
                 if self.verbose > 0:
                     print("reducing learning rate %f to %f" % (lr, lr / self.lr_divide))
                 K.set_value(self.model.optimizer.lr, lr / self.lr_divide)
@@ -68,6 +68,8 @@ class LReduce(Callback):
                 print("new dropout rates: " + ",".join([str(i) for i in DROPOUT_RATES]))
             if self.verbose > 0:
                 print("learning rate is good for now")
+
+        self.previous = current
 
 
 class LossHistory(Callback):
