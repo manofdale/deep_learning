@@ -52,20 +52,20 @@ class LReduce(Callback):
                 K.set_value(self.model.optimizer.lr, lr / self.lr_divide)
             else:
                 self.wait += 1
-                print("increasing dropout rates: " + ",".join(DROPOUT_RATES))
+                print("increasing dropout rates: " + ",".join([str(i) for i in DROPOUT_RATES]))
                 for i, j in enumerate(DROPOUT_RATES):
                     DROPOUT_RATES[i] = j * 1.05
-                print("new dropout rates: " + ",".join(DROPOUT_RATES))
+                print("new dropout rates: " + ",".join([str(i) for i in DROPOUT_RATES]))
         else:
             self.wait = 0.0
             if np.less(current, self.best_loss):
                 lr = self.model.optimizer.get_config()["lr"]
                 print(lr,type(lr))
                 K.set_value(self.model.optimizer.lr, lr * (1 + self.lr_divide ** 0.2))
-                print("decreasing dropout rates: " + ",".join(DROPOUT_RATES))
+                print("decreasing dropout rates: " + ",".join([str(i) for i in DROPOUT_RATES]))
                 for i, j in enumerate(DROPOUT_RATES):
                     DROPOUT_RATES[i] = j / 1.5
-                print("new dropout rates: " + ",".join(DROPOUT_RATES))
+                print("new dropout rates: " + ",".join([str(i) for i in DROPOUT_RATES]))
             if self.verbose > 0:
                 print("learning rate is good for now")
 
