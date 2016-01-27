@@ -59,7 +59,8 @@ class LReduce(Callback):
         else:
             self.wait = 0.0
             if np.less(current, self.best_loss):
-                lr = self.model.optimizer.lr
+                lr = self.model.optimizer.get_config()["lr"]
+                print(lr,type(lr))
                 K.set_value(self.model.optimizer.lr, lr * (1 + self.lr_divide ** 0.2))
                 print("decreasing dropout rates: " + ",".join(DROPOUT_RATES))
                 for i, j in enumerate(DROPOUT_RATES):
