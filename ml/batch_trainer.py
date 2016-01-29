@@ -12,7 +12,7 @@ import numpy as np
 
 PATH = '/home/agp/workspace/deep_learning/models/'
 FILE_NAME_PREFIX = 'combined_and_defaulted_512_7_cnn_model_'
-DROPOUT_RATES = [0.05, 0.05, 0.1]
+DROPOUT_RATES = [0.5, 0.5, 0.5]
 
 
 class LReduce(Callback):
@@ -27,7 +27,7 @@ class LReduce(Callback):
         verbose: verbosity mode, 0 or 1.
     '''
 
-    def __init__(self, verbose=0, patience=3, lr_divide=3.0):
+    def __init__(self, verbose=0, patience=3, lr_divide=1.2):
         super(Callback, self).__init__()
         self.verbose = verbose
         self.loss_history = []
@@ -46,27 +46,28 @@ class LReduce(Callback):
             if self.wait > self.patience:
                 self.wait = 0.0
                 lr = self.model.optimizer.get_config()["lr"]
-                print(lr,type(lr))
+                print(lr, type(lr))
                 if self.verbose > 0:
-                    print("reducing learning rate %f to %f" % (lr, lr / self.lr_divide))
+                    print("increasing learning rate %f to %f" % (lr, lr * 1.01))
                 K.set_value(self.model.optimizer.lr, lr / self.lr_divide)
             else:
                 self.wait += 1
                 print("increasing dropout rates: " + ",".join([str(i) for i in DROPOUT_RATES]))
                 for i, j in enumerate(DROPOUT_RATES):
-                    DROPOUT_RATES[i] = j * 1.05
+                    DROPOUT_RATES[i] = j * 1.01
                 print("new dropout rates: " + ",".join([str(i) for i in DROPOUT_RATES]))
         else:
             self.wait = 0.0
             if np.less(current, self.best_loss):
                 lr = self.model.optimizer.get_config()["lr"]
-                print(lr,type(lr))
-                K.set_value(self.model.optimizer.lr, lr * (1 + self.lr_divide ** 0.2))
+                print(lr, type(lr))
+                K.set_value(self.model.optimizer.lr, lr / 1.05)
+                print("decreasing learning rate from %f to %f" % (lr, lr / 1.05))
                 print("decreasing dropout rates: " + ",".join([str(i) for i in DROPOUT_RATES]))
                 for i, j in enumerate(DROPOUT_RATES):
-                    DROPOUT_RATES[i] = j / 1.5
+                    DROPOUT_RATES[i] = j / 1.05
                 print("new dropout rates: " + ",".join([str(i) for i in DROPOUT_RATES]))
-            if self.verbose > 0:
+            elif self.verbose > 0:
                 print("learning rate is good for now")
 
         self.previous = current
@@ -175,7 +176,7 @@ def batch_train(my_trainer, model_name_to_load, model_name_to_save, nb_epoch=10,
     my_trainer.prepare_for_training(model=dl_model, reshape_input=cnn_model.reshape_input,
                                     reshape_output=cnn_model.reshape_str_output)
     save_best = ModelCheckpoint(filepath=PATH + FILE_NAME_PREFIX + "_best.hdf5", verbose=1, save_best_only=True)
-    adjust_learning_rate = LReduce(verbose=1, patience=3, lr_divide=3.0)
+    adjust_learning_rate = LReduce(verbose=1, patience=3, lr_divide=1.2)
     score = my_trainer.train(callbacks=[save_best, adjust_learning_rate])
     print("end of batch training")
     print(score)
