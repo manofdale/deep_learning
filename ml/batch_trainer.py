@@ -12,7 +12,7 @@ import numpy as np
 
 PATH = '/home/agp/workspace/deep_learning/models/'
 FILE_NAME_PREFIX = 'combined_and_defaulted_512_7_cnn_model_'
-DROPOUT_RATES = [0.5, 0.5, 0.5]
+DROPOUT_RATES = [0.05, 0.05, 0.5]
 
 
 class LReduce(Callback):
@@ -48,21 +48,21 @@ class LReduce(Callback):
                 lr = self.model.optimizer.get_config()["lr"]
                 print(lr, type(lr))
                 if self.verbose > 0:
-                    print("increasing learning rate %f to %f" % (lr, lr * 1.01))
+                    print("decreasing learning rate %f to %f" % (lr, lr / 1.01))
                 K.set_value(self.model.optimizer.lr, lr / self.lr_divide)
             else:
                 self.wait += 1
                 print("increasing dropout rates: " + ",".join([str(i) for i in DROPOUT_RATES]))
                 for i, j in enumerate(DROPOUT_RATES):
-                    DROPOUT_RATES[i] = j * 1.01
+                    DROPOUT_RATES[i] = j * 1.05
                 print("new dropout rates: " + ",".join([str(i) for i in DROPOUT_RATES]))
         else:
             self.wait = 0.0
             if np.less(current, self.best_loss):
                 lr = self.model.optimizer.get_config()["lr"]
                 print(lr, type(lr))
-                K.set_value(self.model.optimizer.lr, lr / 1.05)
-                print("decreasing learning rate from %f to %f" % (lr, lr / 1.05))
+                K.set_value(self.model.optimizer.lr, lr * 1.01)
+                print("increasing learning rate from %f to %f" % (lr, lr / 1.05))
                 print("decreasing dropout rates: " + ",".join([str(i) for i in DROPOUT_RATES]))
                 for i, j in enumerate(DROPOUT_RATES):
                     DROPOUT_RATES[i] = j / 1.05
@@ -177,7 +177,7 @@ def batch_train(my_trainer, model_name_to_load, model_name_to_save, nb_epoch=10,
                                     reshape_output=cnn_model.reshape_str_output)
     save_best = ModelCheckpoint(filepath=PATH + FILE_NAME_PREFIX + "_best.hdf5", verbose=1, save_best_only=True)
     adjust_learning_rate = LReduce(verbose=1, patience=3, lr_divide=1.2)
-    score = my_trainer.train(callbacks=[save_best, adjust_learning_rate])
+    score = my_trainer.train(callbacks=[save_best])
     print("end of batch training")
     print(score)
     my_trainer.model.save_weights(model_name_to_save, overwrite=True)
