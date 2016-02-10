@@ -12,7 +12,7 @@ import numpy as np
 
 PATH = '/home/agp/workspace/deep_learning/models/'
 FILE_NAME_PREFIX = 'combined_and_defaulted_512_7_cnn_model_'
-DROPOUT_RATES = [0.05, 0.05, 0.5]
+DROPOUT_RATES = [0.015, 0.015, 0.35]
 
 
 class LReduce(Callback):
@@ -50,6 +50,7 @@ class LReduce(Callback):
                 if self.verbose > 0:
                     print("decreasing learning rate %f to %f" % (lr, lr / 1.01))
                 K.set_value(self.model.optimizer.lr, lr / self.lr_divide)
+                K.set_value(self.model.drop)
             else:
                 self.wait += 1
                 print("increasing dropout rates: " + ",".join([str(i) for i in DROPOUT_RATES]))
@@ -86,7 +87,7 @@ def train_forever():
     train_csv = "/home/agp/workspace/deep_learning/datasets/all_combined.csv"
     nb_epoch = 100
     current_i = 0
-    start_over = True
+    start_over = False
 
     class Pack:
         pass
@@ -122,7 +123,7 @@ def train_forever():
     while True:
         for i in range(current_i, 1999, nb_epoch):
             print("epoch:%d" % i)
-            if random.random(5) < 2:
+            if i == 0 or random.random(5) < 2:
                 model_name_to_load = PATH + FILE_NAME_PREFIX + "_best.hdf5"  # + str(i) + '_epoch.hdf5'
             else:
                 model_name_to_load = PATH + FILE_NAME_PREFIX + str(i) + '_epoch.hdf5'
