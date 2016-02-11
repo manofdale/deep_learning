@@ -12,7 +12,8 @@ import numpy as np
 
 PATH = '/home/agp/workspace/deep_learning/models/'
 FILE_NAME_PREFIX = 'combined_and_defaulted_512_7_cnn_model_'
-DROPOUT_RATES = [0.015, 0.015, 0.35]
+DATASET_PATH="/home/agp/workspace/deep_learning/datasets/all_combined.csv"
+DROPOUT_RATES = [0.015, 0.015, 0.4]
 
 
 class LReduce(Callback):
@@ -84,7 +85,7 @@ class LossHistory(Callback):
 
 def train_forever():
     global DROPOUT_RATES
-    train_csv = "/home/agp/workspace/deep_learning/datasets/all_combined.csv"
+    train_csv = DATASET_PATH
     nb_epoch = 100
     current_i = 0
     start_over = False
