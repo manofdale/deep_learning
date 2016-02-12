@@ -103,9 +103,9 @@ def train_forever():
     max_cnn_drop = 0.4
     max_dense_drop = 0.5
     prep = ImageDataGenerator(
-            featurewise_center=True,  # set input mean to 0 over the dataset
+            featurewise_center=True,  # set input mean to 0 over the data
             samplewise_center=False,  # set each sample mean to 0
-            featurewise_std_normalization=True,  # divide inputs by std of the dataset
+            featurewise_std_normalization=True,  # divide inputs by std of the data
             samplewise_std_normalization=False,  # divide each input by its std
             zca_whitening=False,  # apply ZCA whitening
             rotation_range=20,  # randomly rotate images in the range (degrees, 0 to 180)
@@ -171,7 +171,7 @@ def batch_train(my_trainer, model_name_to_load, model_name_to_save, nb_epoch=10,
     cnn_model.prepare_model7(model=dl_model, nb_classes=my_trainer.training_parameters.nb_classes, hidden_layers=[2048],
                              **kwargs)
     if model_name_to_save is None:
-        logging.warning("model is running for the first time")
+        logging.warning("models is running for the first time")
     elif isinstance(model_name_to_load, basestring):
         dl_model.load_weights(model_name_to_load)
 

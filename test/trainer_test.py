@@ -31,7 +31,7 @@ class TestTrainer(unittest.TestCase):
         os.remove("__temp_test.csv")
         pass
 
-    def setUp(self):  # create a model and a temporary csv file
+    def setUp(self):  # create a models and a temporary csv file
         self.dl_model = Sequential()
 
         class _: pass

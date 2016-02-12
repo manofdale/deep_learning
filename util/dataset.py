@@ -145,8 +145,8 @@ def merge_with_the_next_dataset(main_dataset='/home/agp/workspace/deep_learning/
                     dodo.write(i.strip() + "\n")
 
 
-merge_with_the_next_dataset(
-    new_dataset="/home/agp/workspace/deep_learning/streetView/new_dataset/train_with_inverted.csv")
+#merge_with_the_next_dataset(
+#    new_dataset="/home/agp/workspace/deep_learning/streetView/new_dataset/train_with_inverted.csv")
 
 
 def merge_all_datasets():
@@ -191,3 +191,14 @@ def merge_all_datasets():
             if random.randint(0, 15) < 1:  # random sample mnist training set
                 if len(i.strip()) != 0:
                     dodo.write(i.strip() + "\n")
+
+def dilute_dataset(main_dataset,new_dataset):
+    with open(main_dataset, "r") as train, open(new_dataset, "w") as dodo:
+        first=True
+        for i in train:
+            if first or random.randint(0, 20) < 2:  # random sample training set
+                first=False
+                if len(i.strip()) != 0:
+                    dodo.write(i.strip() + "\n")
+
+dilute_dataset("/home/agp/workspace/deep_learning/datasets/all_combined.csv","/home/agp/workspace/deep_learning/datasets/all_combined_diluted.csv")

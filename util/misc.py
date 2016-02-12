@@ -963,7 +963,7 @@ def load_csv(fname_csv, data_row=1):
 
 
 def fill_missing_data(dataset, column_id=0, number_handler=nan_to_mean, string_handler=empty_to_mode):
-    """Handle NaN entries and empty strings given a column id, update the given dataset        
+    """Handle NaN entries and empty strings given a column id, update the given data
     @param dataset: a list of lists corresponding to a matrix
     @param number_handler: convert a given column with NaN entries to one without, 
         call string_handler if given column is a string column and does not contain NaN

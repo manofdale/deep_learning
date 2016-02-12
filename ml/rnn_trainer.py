@@ -14,7 +14,7 @@ def batch_train(trainer, model_name_to_load, model_name_to_save, nb_epoch=10, **
     cnn_model.prepare_model3(model=dl_model, nb_classes=trainer.training_parameters.nb_classes, hidden_layers=[512],
                              **kwargs)
     if model_name_to_save is None:
-        logging.warning("model is running for the first time")
+        logging.warning("models is running for the first time")
     elif isinstance(model_name_to_load, basestring):
         dl_model.load_weights(model_name_to_load)
 

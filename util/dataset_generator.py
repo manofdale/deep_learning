@@ -104,7 +104,7 @@ def clockwise_quadrilateral(width, height):
 
 
 def generate_letter_images():
-    """generate a new dataset of warped characters [a-zA-Z0-9]"""
+    """generate a new data of warped characters [a-zA-Z0-9]"""
     if "(" in sys.argv[1]:  # assume a dimension input and an empty bg
         [w, h] = sys.argv[1][1:-1:].split(',')
         print(int(w) * int(h))

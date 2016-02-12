@@ -14,7 +14,7 @@ from util.misc import fill_missing_data, nan_to_mean, empty_to_mode, \
 
 # from numpy.f2py.auxfuncs import throw_error
 class Trainer(object):
-    """Train using a given model and dataset
+    """Train using a given models and data
     classdocs
     """
 
@@ -27,8 +27,8 @@ class Trainer(object):
         
         Parameters:
         @param typed_rows: contains already shuffled input, output and external test data instead of a csv file
-        @param train_csv:name of the file that contains training dataset, may or may not have a line describing the labels 
-        @param test_csv: name of the file that contains testing dataset, may or may not have a line describing the labels 
+        @param train_csv:name of the file that contains training data, may or may not have a line describing the labels
+        @param test_csv: name of the file that contains testing data, may or may not have a line describing the labels
         @param data_row: the line number where real data starts,labels line is assumed to be given just before this line
         @param output_count: number of outputs (or classes) to be trained, give -1 to autodetect from labels
             if output_count is -1 then reassign output_count to # labels that start with 'label' 
@@ -38,7 +38,7 @@ class Trainer(object):
             str-> number (e.g. int, float, binary, hex) conversions should handle missing data and return 'NaN'
         @param nan_handlers: convert 'NaN' into a number in a given column
         @param empty_str_handlers: convert empty string into categorical data in a given column
-        @param model: model object that can be trained with model.fit(self.input_rows,self.output_rows,
+        @param model: models object that can be trained with models.fit(self.input_rows,self.output_rows,
         test_to_train_ratio=0.5,validation_ratio=0.2), it should randomly select given ratios of input and output rows 
         for training and validation, and the rest for testing        
         """
@@ -48,7 +48,7 @@ class Trainer(object):
         self.output_count = output_count
         self.preprocessor = preprocessor
 
-        if refined_rows is not None and len(refined_rows) > 4:  # already have good data, ready to use for the model
+        if refined_rows is not None and len(refined_rows) > 4:  # already have good data, ready to use for the models
             self.labels = refined_rows[0]
             self.train_input = refined_rows[1]
             self.train_output = refined_rows[2]
@@ -60,7 +60,7 @@ class Trainer(object):
                 self.load_train_test_csv(None, test_csv, data_row, converters)
         elif unrefined_rows is not None and len(unrefined_rows) > 2:
             """input and output is already given in rows, already shuffled
-            but it will require further reshaping and horizontal splitting (train/test) for the model"""
+            but it will require further reshaping and horizontal splitting (train/test) for the models"""
             self.labels = unrefined_rows[0]
             self.input_rows = unrefined_rows[1]
             self.output_rows = unrefined_rows[2]
@@ -79,11 +79,11 @@ class Trainer(object):
             self.handle_missing_data(nan_handlers, empty_str_handlers)
             """@Todo check why this doesn't work when not given train_csv"""
         else:
-            logging.info("assuming no missing numbers in the dataset")
+            logging.info("assuming no missing numbers in the data")
         if model is not None:
-            logging.info("model assigned:" + model.str())
+            logging.info("models assigned:" + model.str())
         else:
-            logging.info("no model is assigned yet")
+            logging.info("no models is assigned yet")
 
     def check_set_parameters(self):
         """make a default one if a parameter doesn't exist"""
@@ -156,10 +156,10 @@ class Trainer(object):
     def prepare_for_training(self, model=None, training_parameters=None,
                              reshape_input=None, reshape_output=None,
                              prepare_model=None, **kwargs):
-        """reshape unrefined data into a form that can be directly used by the model"""
+        """reshape unrefined data into a form that can be directly used by the models"""
         if model is None:
             if self.model is None:
-                logging.error("model is not given for training")
+                logging.error("models is not given for training")
                 return
         else:
             self.model = model
