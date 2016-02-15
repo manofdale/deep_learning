@@ -52,7 +52,7 @@ def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r):
 
 
 def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=3, nb_filters=42,
-                      nb_pool=2,
+                      nb_pool=1,
                       nb_conv=3, nb_classes=47, cnn_dropout_limit=0.25, dropout_limit=0.75, hidden_layer_limit=1024,
                       border_modes=['same'], optimizers=['adadelta'],
                       loss_functions=['categorical_crossentropy'],
@@ -89,7 +89,7 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=3, nb_f
         config["dropout"].append(dropout_rate)
         config["activation"].append(activation_func)
     for i in range(dense_limit):
-        if random.randint(0, 10) < 4:  # prevent from getting too big
+        if random.randint(0, 10) < 3:  # prevent from getting too big
             break
         hidden_layer_size = random.randint(hard_limit ** 2, hidden_layer_limit)
         dropout_rate = random.random() * dropout_limit
