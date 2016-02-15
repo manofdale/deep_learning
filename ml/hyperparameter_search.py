@@ -7,10 +7,11 @@ from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers.convolutional import Convolution2D, MaxPooling2D
 from keras.layers.core import Dense, Dropout, Activation, Flatten
 from keras.models import Sequential
+from keras.optimizers import SGD
 from keras.preprocessing.image import ImageDataGenerator
+from keras import backend as K
 from keras.utils import np_utils
 import pickle
-
 
 from ml import cnn_model
 from ml.trainer import Trainer
@@ -21,10 +22,11 @@ import random
 
 class MyModelCheckpoint(ModelCheckpoint):
     def __init__(self, filepath, best_of_the_bests=np.inf, monitor='val_acc', verbose=0,
-                 save_best_only=False, mode='auto'):
+                 save_best_only=False, mode='auto', lr_divide=1.5):
         super(MyModelCheckpoint, self).__init__(filepath, monitor=monitor, verbose=verbose,
                                                 save_best_only=save_best_only, mode=mode)
         self.old_best = self.best
+        self.lr_divide = lr_divide
         self.best_of_the_bests = best_of_the_bests
 
     def on_epoch_end(self, epoch, logs={}):
@@ -34,6 +36,11 @@ class MyModelCheckpoint(ModelCheckpoint):
             if self.monitor_op(self.best, self.best_of_the_bests):
                 print("best %s of the bests with %f" % (self.monitor, self.best))
                 self.model.save_weights("data/models/best_of_the_bests.hdf5", overwrite=True)
+        else:
+            lr = self.model.optimizer.get_config()["lr"]
+            if self.verbose > 0:
+                print("decreasing learning rate %f to %f" % (lr, lr / self.lr_divide))
+            K.set_value(self.model.optimizer.lr, lr / self.lr_divide)
 
 
 def add_convolution(model, nb_filters, nb_conv, nb_pool, dropout_rate, activation_func, r):
@@ -54,13 +61,13 @@ def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r):
 def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=3, nb_filters=42,
                       nb_pool=1,
                       nb_conv=3, nb_classes=47, cnn_dropout_limit=0.25, dropout_limit=0.75, hidden_layer_limit=1024,
-                      border_modes=['same'], optimizers=['adadelta'],
+                      border_modes=['same'], optimizers=[],  # 'adadelta'],
                       loss_functions=['categorical_crossentropy'],
                       cnn_activation_functions=['relu'], dense_activation_functions=['relu'],
                       final_activation='softmax',
                       ):
     border_mode = border_modes[random.randint(0, len(border_modes) - 1)]
-    conv = 2 *random.randint(0, nb_conv)+1
+    conv = 2 * random.randint(0, nb_conv) + 1
     nb_filter = 10 + random.randint(0, nb_filters)
     activation_func = cnn_activation_functions[random.randint(0, len(cnn_activation_functions) - 1)]
     config = {"nb_conv": [conv], "border_mode": border_mode, "img_rows": img_rows, "img_cols": img_cols,
@@ -71,10 +78,10 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=3, nb_f
     cnn_layer_n = 0
     for i in range(cnn_limit):
         cnn_layer_n += 1
-        conv = 2* random.randint(0, nb_conv)+1
+        conv = 2 * random.randint(0, nb_conv) + 1
         pool = 2 + random.randint(0, nb_pool)
         hard_limit //= pool
-        print(hard_limit,pool,conv)
+        print(hard_limit, pool, conv)
         if hard_limit < 8:
             break
         activation_func = cnn_activation_functions[random.randint(0, len(cnn_activation_functions) - 1)]
@@ -103,9 +110,24 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=3, nb_f
     config["nb_classes"] = nb_classes
     config["activation"].append(final_activation)
     loss_function = loss_functions[random.randint(0, len(loss_functions) - 1)]
-    optimizer = optimizers[random.randint(0, len(optimizers) - 1)]
+    lr = random.random() * 0.8 + 0.001
+    momentum = random.random() * 0.8 + 0.12
+
+    nesterov = random.random() < 0.5
+    decay =random.random()*1e-5
+    config["sgd_lr_init"] = lr
+    config["sgd_momentum"] = momentum
+    config["sgd_nesterov"] = nesterov
+    config["sgd_decay"]=decay
+    # TODO add other configs
+    ''' sgd = SGD(lr=dict_config["sgd_lr_init"],
+              momentum=dict_config["sgd_momentum"],
+              decay=dict_config["sgd_decay"],
+              nesterov=dict_config["sgd_nesterov"])'''
+    #optimizers.append(sgd)
+    #optimizer = optimizers[random.randint(0, len(optimizers) - 1)]
+    #config["optimizer"] = optimizer
     config["loss_function"] = loss_function
-    config["optimizer"] = optimizer
     return config
 
 
@@ -145,12 +167,17 @@ def construct_cnn(dict_config):
         i += 1
         add_dense(model, k, activation_funcs[i], dropout_rates[i - 1], nb_repeats[i - 1])
     i += 1
-    #try:
+    # try:
     model.add(Dense(dict_config["nb_classes"]))
     model.add(Activation(activation_funcs[i]))
-    model.compile(loss=dict_config["loss_function"], optimizer=dict_config["optimizer"])
+    # sgd = SGD(lr=lr, decay=1e-6, momentum=0.9, nesterov=True)
+    sgd = SGD(lr=dict_config["sgd_lr_init"],
+              momentum=dict_config["sgd_momentum"],
+              decay=dict_config["sgd_decay"],
+              nesterov=dict_config["sgd_nesterov"])
+    model.compile(loss=dict_config["loss_function"], optimizer=sgd)
     return model
-    #except:
+    # except:
     #    print("the model configuration wasn't good:")
     #    print(dict_config)
     #    return None
@@ -167,16 +194,16 @@ def random_search():
     tp.nb_classes = 46 + 1  # +1 for "don't know = * " class
     train_csv = "data/dataset/all_combined_diluted.csv"
     prep = ImageDataGenerator(
-            featurewise_center=True,  # set input mean to 0 over the data
-            samplewise_center=False,  # set each sample mean to 0
-            featurewise_std_normalization=True,  # divide inputs by std of the data
-            samplewise_std_normalization=False,  # divide each input by its std
-            zca_whitening=False,  # apply ZCA whitening
-            rotation_range=30,  # randomly rotate images in the range (degrees, 0 to 180)
-            width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
-            height_shift_range=0.1,  # randomly shift images vertically (fraction of total height)
-            horizontal_flip=False,  # don't horizontally flip images
-            vertical_flip=False)  # don't vertically flip images
+        featurewise_center=True,  # set input mean to 0 over the data
+        samplewise_center=False,  # set each sample mean to 0
+        featurewise_std_normalization=True,  # divide inputs by std of the data
+        samplewise_std_normalization=False,  # divide each input by its std
+        zca_whitening=False,  # apply ZCA whitening
+        rotation_range=30,  # randomly rotate images in the range (degrees, 0 to 180)
+        width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
+        height_shift_range=0.1,  # randomly shift images vertically (fraction of total height)
+        horizontal_flip=False,  # don't horizontally flip images
+        vertical_flip=False)  # don't vertically flip images
     my_trainer = Trainer(train_csv=train_csv, test_csv=None,
                          converters=None, nan_handlers=None, empty_str_handlers=None, training_parameters=tp,
                          preprocessor=prep)
@@ -197,13 +224,13 @@ def random_search():
                                       best_of_the_bests=best_of_the_bests, verbose=1,
                                       save_best_only=True)
                                       '''
-        save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_%d_best.hdf5" % i, best_of_the_bests=best_of_the_bests, verbose=1,
-                                    save_best_only=True)
-        early_stop = EarlyStopping(monitor='val_acc', patience=0, verbose=0, mode='auto')
+        save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_%d_best.hdf5" % i,
+                                      best_of_the_bests=best_of_the_bests, verbose=1,
+                                      save_best_only=True)
+        early_stop = EarlyStopping(monitor='val_acc', patience=3, verbose=0, mode='auto')
         my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
                                         reshape_output=cnn_model.reshape_str_output)
+
         score = my_trainer.train(callbacks=[save_best, early_stop])
         print("end of training %d" % i)
         print(score)
-
-
