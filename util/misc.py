@@ -16,7 +16,7 @@ from SimpleCV import Image, cv2, FeatureSet
 import logging
 import numpy as np
 from math import sqrt
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from cv2 import cv
 
 
@@ -975,7 +975,7 @@ def fill_missing_data(dataset, column_id=0, number_handler=nan_to_mean, string_h
         dataset[i][column_id] = j
 
 
-def plot_confusion_matrix(cm=None, labels=None, title='Confusion matrix', cmap=plt.cm.Blues):
+'''def plot_confusion_matrix(cm=None, labels=None, title='Confusion matrix', cmap=plt.cm.Blues):
     plt.imshow(cm, interpolation='nearest', cmap=cmap)
     plt.title(title)
     plt.colorbar()
@@ -984,7 +984,7 @@ def plot_confusion_matrix(cm=None, labels=None, title='Confusion matrix', cmap=p
     plt.yticks(tick_marks, labels)
     plt.tight_layout()
     plt.ylabel('True label')
-    plt.xlabel('Predicted label')
+    plt.xlabel('Predicted label')'''
 
 
 def remap_csv_labels(remapper, input_csv, output_csv):
