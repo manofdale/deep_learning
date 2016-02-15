@@ -161,7 +161,7 @@ def random_search():
         pass
 
     tp = Pack()
-    tp.nb_epoch = 1
+    tp.nb_epoch = 50
     tp.input_dimX = 28
     tp.input_dimY = 28
     tp.nb_classes = 46 + 1  # +1 for "don't know = * " class
