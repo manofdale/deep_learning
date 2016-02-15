@@ -20,7 +20,7 @@ import random
 
 
 class MyModelCheckpoint(ModelCheckpoint):
-    def __init__(self, filepath, best_of_the_bests=np.inf, monitor='val_loss', verbose=0,
+    def __init__(self, filepath, best_of_the_bests=np.inf, monitor='val_acc', verbose=0,
                  save_best_only=False, mode='auto'):
         super(MyModelCheckpoint, self).__init__(filepath, monitor=monitor, verbose=verbose,
                                                 save_best_only=save_best_only, mode=mode)
@@ -199,7 +199,7 @@ def random_search():
                                       '''
         save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_%d_best.hdf5" % i, best_of_the_bests=best_of_the_bests, verbose=1,
                                     save_best_only=True)
-        early_stop = EarlyStopping(monitor='val_loss', patience=0, verbose=0, mode='auto')
+        early_stop = EarlyStopping(monitor='val_acc', patience=0, verbose=0, mode='auto')
         my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
                                         reshape_output=cnn_model.reshape_str_output)
         score = my_trainer.train(callbacks=[save_best, early_stop])
