@@ -32,7 +32,7 @@ class MyModelCheckpoint(ModelCheckpoint):
         if self.old_best != self.best:  # new best
             self.old_best = self.best
             if self.monitor_op(self.best, self.best_of_the_bests):
-                print("best %f of the bests with %f" % (self.monitor, self.best))
+                print("best %s of the bests with %f" % (self.monitor, self.best))
                 self.model.save_weights("data/models/best_of_the_bests.hdf5", overwrite=True)
 
 
