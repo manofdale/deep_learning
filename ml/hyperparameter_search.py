@@ -51,7 +51,7 @@ def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r):
         model.add(Dropout(dropout_rate))
 
 
-def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=4, nb_filters=42,
+def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=3, nb_filters=42,
                       nb_pool=2,
                       nb_conv=3, nb_classes=47, cnn_dropout_limit=0.25, dropout_limit=0.75, hidden_layer_limit=1024,
                       border_modes=['same'], optimizers=['adadelta'],
@@ -60,7 +60,7 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=4, nb_f
                       final_activation='softmax',
                       ):
     border_mode = border_modes[random.randint(0, len(border_modes) - 1)]
-    conv = 2 + random.randint(0, nb_conv)
+    conv = 2 *random.randint(0, nb_conv)+1
     nb_filter = 10 + random.randint(0, nb_filters)
     activation_func = cnn_activation_functions[random.randint(0, len(cnn_activation_functions) - 1)]
     config = {"nb_conv": [conv], "border_mode": border_mode, "img_rows": img_rows, "img_cols": img_cols,
@@ -71,10 +71,11 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=4, nb_f
     cnn_layer_n = 0
     for i in range(cnn_limit):
         cnn_layer_n += 1
-        conv = 2 + random.randint(0, nb_conv)
+        conv = 2* random.randint(0, nb_conv)+1
         pool = 2 + random.randint(0, nb_pool)
-        hard_limit //= nb_pool
-        if hard_limit < 4:
+        hard_limit //= pool
+        print(hard_limit,pool,conv)
+        if hard_limit < 7:
             break
         activation_func = cnn_activation_functions[random.randint(0, len(cnn_activation_functions) - 1)]
         dropout_rate = random.random() * cnn_dropout_limit
@@ -88,7 +89,7 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=4, nb_f
         config["dropout"].append(dropout_rate)
         config["activation"].append(activation_func)
     for i in range(dense_limit):
-        if random.randint(0, 10) < 11:  # prevent from getting too big
+        if random.randint(0, 10) < 4:  # prevent from getting too big
             break
         hidden_layer_size = random.randint(hard_limit ** 2, hidden_layer_limit)
         dropout_rate = random.random() * dropout_limit
@@ -117,6 +118,7 @@ def construct_cnn(dict_config):
     'nb_repeat': [3, 2], 'nb_conv': [5, 5, 6], 'img_rows': 28}
     :return: keras models of type Sequential
     """
+    print(dict_config)
     model = Sequential()
     nb_filters = dict_config["nb_filter"]
     border_mode = dict_config["border_mode"]
@@ -143,15 +145,15 @@ def construct_cnn(dict_config):
         i += 1
         add_dense(model, k, activation_funcs[i], dropout_rates[i - 1], nb_repeats[i - 1])
     i += 1
-    try:
-        model.add(Dense(dict_config["nb_classes"]))
-        model.add(Activation(activation_funcs[i]))
-        model.compile(loss=dict_config["loss_function"], optimizer=dict_config["optimizer"])
-        return model
-    except:
-        print("the model configuration wasn't good:")
-        print(dict_config)
-        return None
+    #try:
+    model.add(Dense(dict_config["nb_classes"]))
+    model.add(Activation(activation_funcs[i]))
+    model.compile(loss=dict_config["loss_function"], optimizer=dict_config["optimizer"])
+    return model
+    #except:
+    #    print("the model configuration wasn't good:")
+    #    print(dict_config)
+    #    return None
 
 
 def random_search():
@@ -195,7 +197,7 @@ def random_search():
                                       best_of_the_bests=best_of_the_bests, verbose=1,
                                       save_best_only=True)
                                       '''
-        save_best = ModelCheckpoint(filepath="data/models/random_cnn_config_%d_best.hdf5" % i, verbose=1,
+        save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_%d_best.hdf5" % i, best_of_the_bests=best_of_the_bests, verbose=1,
                                     save_best_only=True)
         early_stop = EarlyStopping(monitor='val_loss', patience=0, verbose=0, mode='auto')
         my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
