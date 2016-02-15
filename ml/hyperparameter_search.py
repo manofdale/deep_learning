@@ -180,7 +180,7 @@ def random_search():
     my_trainer = Trainer(train_csv=train_csv, test_csv=None,
                          converters=None, nan_handlers=None, empty_str_handlers=None, training_parameters=tp,
                          preprocessor=prep)
-    best_of_the_bests = np.inf
+    best_of_the_bests = -np.inf
     for i in range(0, 50):
         model = None
         for tr in range(0, 50):
