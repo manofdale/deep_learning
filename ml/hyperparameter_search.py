@@ -75,7 +75,7 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=3, nb_f
         pool = 2 + random.randint(0, nb_pool)
         hard_limit //= pool
         print(hard_limit,pool,conv)
-        if hard_limit < 7:
+        if hard_limit < 8:
             break
         activation_func = cnn_activation_functions[random.randint(0, len(cnn_activation_functions) - 1)]
         dropout_rate = random.random() * cnn_dropout_limit
