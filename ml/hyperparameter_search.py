@@ -11,6 +11,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.utils import np_utils
 import pickle
 
+
 from ml import cnn_model
 from ml.trainer import Trainer
 from util import misc
@@ -32,7 +33,7 @@ class MyModelCheckpoint(ModelCheckpoint):
             self.old_best = self.best
             if self.monitor_op(self.best, self.best_of_the_bests):
                 print("best %f of the bests with %f" % (self.monitor, self.best))
-                self.model.save_weights("../data/models/best_of_the_bests.hdf5", overwrite=True)
+                self.model.save_weights("data/models/best_of_the_bests.hdf5", overwrite=True)
 
 
 def add_convolution(model, nb_filters, nb_conv, nb_pool, dropout_rate, activation_func, r):
@@ -162,7 +163,7 @@ def random_search():
     tp.input_dimX = 28
     tp.input_dimY = 28
     tp.nb_classes = 46 + 1  # +1 for "don't know = * " class
-    train_csv = "../data/dataset/all_combined_diluted.csv"
+    train_csv = "data/dataset/all_combined_diluted.csv"
     prep = ImageDataGenerator(
             featurewise_center=True,  # set input mean to 0 over the data
             samplewise_center=False,  # set each sample mean to 0
@@ -188,13 +189,13 @@ def random_search():
         if model is None:
             print("couldn't find a valid random configuration for the given parameters")
             break
-        pickle.dump(dict_config, open("../data/models/random_cnn_config_%d.p" % i, "wb"))
+        pickle.dump(dict_config, open("data/models/random_cnn_config_%d.p" % i, "wb"))
         print(dict_config)
-        '''save_best = MyModelCheckpoint(filepath="../data/models/random_cnn_config_%d_best.hdf5" % i,
+        '''save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_%d_best.hdf5" % i,
                                       best_of_the_bests=best_of_the_bests, verbose=1,
                                       save_best_only=True)
                                       '''
-        save_best = ModelCheckpoint(filepath="../data/models/random_cnn_config_%d_best.hdf5" % i, verbose=1,
+        save_best = ModelCheckpoint(filepath="data/models/random_cnn_config_%d_best.hdf5" % i, verbose=1,
                                     save_best_only=True)
         early_stop = EarlyStopping(monitor='val_loss', patience=0, verbose=0, mode='auto')
         my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
@@ -203,4 +204,4 @@ def random_search():
         print("end of training %d" % i)
         print(score)
 
-random_search()
+
