@@ -13,11 +13,18 @@
 'dropout': [0.005453378752820943, 0.4186666764518312, 0.0031276793264270464, 0.49054717524826125],
 'border_mode': 'same', 'dense_layer_size': [668, 303, 333], 'nb_classes': 47, 'sgd_lr_init': 0.3413625469102144,
 'sgd_nesterov': True, 'nb_filter': [38, 13], 'loss_function': 'categorical_crossentropy', 'nb_repeat': [1, 2, 1, 3],
-'nb_conv': [5, 5], 'img_rows': 28}
+'nb_conv': [5, 5], 'img_rows': 28
 
 {'nb_pool': [3], 'activation': ['relu', 'relu', 'relu', 'softmax'], 'sgd_momentum': 0.5237198198204782, 'img_cols': 28,
 'sgd_decay': 4.769052832290945e-06, 'dropout': [0.0261806231903123, 0.034080922316814144], 'border_mode': 'same',
 'dense_layer_size': [389], 'nb_classes': 47, 'sgd_lr_init': 0.17673570940355393, 'sgd_nesterov': True,
 'nb_filter': [15, 22], 'loss_function': 'categorical_crossentropy', 'nb_repeat': [3, 2], 'nb_conv': [3, 5],
 'img_rows': 28}
+
+{'nb_pool': [3], 'activation': ['relu', 'relu', 'relu', 'softmax'], 'sgd_momentum': 0.5183341128080887, 'img_cols': 28,
+'sgd_decay': 5.032861692051494e-07, 'dropout': [0.1191337991456732, 0.34021470868474174], 'border_mode': 'same',
+'dense_layer_size': [1010], 'nb_classes': 47, 'sgd_lr_init': 0.24959581440249015, 'sgd_nesterov': True,
+'nb_filter': [13, 36], 'loss_function': 'categorical_crossentropy', 'nb_repeat': [1, 4], 'nb_conv': [3, 5],
+'img_rows': 28}
+
 
