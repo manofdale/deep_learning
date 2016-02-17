@@ -193,12 +193,12 @@ def merge_all_datasets():
                     dodo.write(i.strip() + "\n")
 
 
-def dilute_dataset(main_dataset, new_dataset):
+def dilute_dataset(main_dataset, new_dataset, dilute=4):
     with open(main_dataset, "r") as train, open(new_dataset, "w") as dodo:
         first = True
         for i in train:
             i = i.strip()
-            if first or random.randint(0, 10) < 4:  # random sample training set
+            if first or random.randint(0, 10) < dilute:  # random sample training set
                 if len(i) != 0:
                     if first:
                         dodo.write(i.strip() + "\n")
@@ -214,8 +214,8 @@ def dilute_dataset(main_dataset, new_dataset):
                         dodo.write(i.strip() + "\n")
 
 
-#dilute_dataset("/home/agp/workspace/deep_learning/datasets/all_combined.csv",
-#               "/home/agp/workspace/deep_learning/datasets/all_combined_diluted.csv")
+dilute_dataset("/home/agp/workspace/deep_learning/datasets/all_combined.csv",
+               "/home/agp/workspace/deep_learning/datasets/all_combined_diluted.csv", dilute=8)
 
 
 def check_integrity(csv_db, dim, skip=True, label_count=1):
@@ -255,4 +255,4 @@ def check_integrity(csv_db, dim, skip=True, label_count=1):
 
 #raw_input("check?")
 #print(os.curdir)
-#check_integrity("../data/dataset/all_combined_diluted.csv", 784 + 1)
+check_integrity("../data/dataset/all_combined_diluted.csv", 784 + 1)

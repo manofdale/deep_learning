@@ -22,25 +22,34 @@ import random
 
 class MyModelCheckpoint(ModelCheckpoint):
     def __init__(self, filepath, best_of_the_bests=np.inf, monitor='val_acc', verbose=0,
-                 save_best_only=False, mode='auto', lr_divide=1.5):
+                 save_best_only=False, mode='auto', lr_divide=3.0, patience=3.0):
         super(MyModelCheckpoint, self).__init__(filepath, monitor=monitor, verbose=verbose,
                                                 save_best_only=save_best_only, mode=mode)
         self.old_best = self.best
         self.lr_divide = lr_divide
         self.best_of_the_bests = best_of_the_bests
+        self.patience_ctr = 0
+        self.patience=patience
 
     def on_epoch_end(self, epoch, logs={}):
         super(MyModelCheckpoint, self).on_epoch_end(epoch, logs=logs)
         if self.old_best != self.best:  # new best
+            self.patience_ctr = 0
             self.old_best = self.best
             if self.monitor_op(self.best, self.best_of_the_bests):
                 print("best %s of the bests with %f" % (self.monitor, self.best))
                 self.model.save_weights("data/models/best_of_the_bests.hdf5", overwrite=True)
         else:
-            lr = self.model.optimizer.get_config()["lr"]
-            if self.verbose > 0:
-                print("decreasing learning rate %f to %f" % (lr, lr / self.lr_divide))
-            K.set_value(self.model.optimizer.lr, lr / self.lr_divide)
+            self.patience_ctr += 1
+            if self.patience_ctr > self.patience:
+                lr = self.model.optimizer.get_config()["lr"]
+                if lr < 0.001:
+                    K.set_value(self.model.optimizer.lr, random.random())
+                else:
+                    K.set_value(self.model.optimizer.lr, lr / self.lr_divide)
+                if self.verbose > 0:
+                    print("decreasing learning rate %f to %f" % (lr, lr / self.lr_divide))
+                self.patience_ctr = 0
 
 
 def add_convolution(model, nb_filters, nb_conv, nb_pool, dropout_rate, activation_func, r):
@@ -226,7 +235,7 @@ def random_search():
                                       '''
         save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_%d_best.hdf5" % i,
                                       best_of_the_bests=best_of_the_bests, verbose=1,
-                                      save_best_only=True)
+                                      save_best_only=True,patience=5)
         early_stop = EarlyStopping(monitor='val_acc', patience=10, verbose=0, mode='auto')
         my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
                                         reshape_output=cnn_model.reshape_str_output)
