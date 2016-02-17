@@ -13,12 +13,15 @@ for i in range(2000):
     meta = Pack()
     try:
         hyperparameter_search.random_search(meta, trainer)
+    except (KeyboardInterrupt, SystemExit):
+        raise
     except:
         print("this config caused an exception:")
         print(meta.configs[-1])
         meta.scores.append(0)
+
     print("**************************** updating the dataset file ******************************************")
     with open("data/dataset/meta", "a") as meta_file:
         for s, c in zip(meta.scores, meta.configs):
-            meta_file.write(str(i) + ":")
-            meta_file.write(str(j) + "\n")
+            meta_file.write(str(s) + ":")
+            meta_file.write(str(c) + "\n")
