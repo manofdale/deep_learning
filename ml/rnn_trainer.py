@@ -8,7 +8,6 @@ from ml import cnn_model
 def batch_train(trainer, model_name_to_load, model_name_to_save, nb_epoch=10, **kwargs):
     # if not os.path.isfile("dodo.csv"):
     # self.__merge_datasets()
-    # self.__check_file()
     dl_model = Sequential()
     print("segmenter batch train starts..")
     cnn_model.prepare_model3(model=dl_model, nb_classes=trainer.training_parameters.nb_classes, hidden_layers=[512],

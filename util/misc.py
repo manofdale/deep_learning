@@ -16,7 +16,7 @@ from SimpleCV import Image, cv2, FeatureSet
 import logging
 import numpy as np
 from math import sqrt
-#import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 from cv2 import cv
 
 
@@ -155,13 +155,13 @@ def contours_to_boxes(contours, rectangles, max_width, max_height, x_pad=0, y_pa
     return rectangles
 
 
-def find_candidate_text_components(swt, input_image=None,level=0):
+def find_candidate_text_components(swt, input_image=None, level=0):
     lines = swt  # morph_swt(swt)
     lines.show()
     # raw_input("okidoki")
     if input_image is None:
         input_image = lines.invert()
-    mask = filter_contours(swt.invert(), input_image, invert=True, min_size=5,level=level)
+    mask = filter_contours(swt.invert(), input_image, invert=True, min_size=5, level=level)
     lines = mask.invert() + ((mask.invert() + input_image.invert()).invert()).invert()
     # time.sleep(5)
     return find_contours(lines.invert())
@@ -412,17 +412,17 @@ def filter_contours(image, input_image, invert=True, min_size=5, level=0):
 
             # cropped.show()
             # raw_input("n%d,%d,%d" % (edges, rec_perimeter, f.perimeter()))
-            if level>0 or not (abs(h - avg_height) > 3.5 * height_std or abs(w - avg_width) > 5.5 * width_std or
-                                    weird_blob > len(fs2) / 3.25 or abs(w * h - avg_rec_area) > 4 * rec_area_std or
-                                    cropped.width > img.width * 0.9 or cropped.height > img.height * 0.9 or
-                                    edges < rec_perimeter or edges > blob_area * 2 or
-                                    abs(box_area - avg_blob_area) > 7.5 * blob_area_std or abs(
-                        edge_area_ratio - avg_edge_area_ratio) > 3 * edge_area_std or
-                                    abs(f.aspectRatio() - avg_aspect_ratio) > 5.5 * aspect_ratio_std or
-                                    f.aspectRatio() > 20 or
-                                        3.8 * (f.perimeter() / 6.284) ** 2 <= blob_area or f.onImageEdge() or (
-                colors[0][0] + colors[1][0]) < 1.2 * sum(
-                    zip(*colors[2:])[0])):
+            if level > 0 or not (abs(h - avg_height) > 3.5 * height_std or abs(w - avg_width) > 5.5 * width_std or
+                                         weird_blob > len(fs2) / 3.25 or abs(w * h - avg_rec_area) > 4 * rec_area_std or
+                                         cropped.width > img.width * 0.9 or cropped.height > img.height * 0.9 or
+                                         edges < rec_perimeter or edges > blob_area * 2 or
+                                         abs(box_area - avg_blob_area) > 7.5 * blob_area_std or abs(
+                    edge_area_ratio - avg_edge_area_ratio) > 3 * edge_area_std or
+                                         abs(f.aspectRatio() - avg_aspect_ratio) > 5.5 * aspect_ratio_std or
+                                         f.aspectRatio() > 20 or
+                                             3.8 * (f.perimeter() / 6.284) ** 2 <= blob_area or f.onImageEdge() or (
+                        colors[0][0] + colors[1][0]) < 1.2 * sum(
+                zip(*colors[2:])[0])):
                 img.drawRectangle(x, y, w, h, color=(127, 0, 0), width=2)
                 x1 = max(0, x - 8 * pad)
                 y1 = max(0, y - pad)
@@ -436,16 +436,16 @@ def filter_contours(image, input_image, invert=True, min_size=5, level=0):
                     cropped.width > img.width * 0.9, cropped.height > img.height * 0.9,
                     edges < rec_perimeter, edges > blob_area * 2,
                     abs(box_area - avg_blob_area) > 7.5 * blob_area_std, abs(
-                            edge_area_ratio - avg_edge_area_ratio) > 3 * edge_area_std,
+                        edge_area_ratio - avg_edge_area_ratio) > 3 * edge_area_std,
                     abs(f.aspectRatio() - avg_aspect_ratio) > 5.5 * aspect_ratio_std,
                     f.aspectRatio() > 20,
                     3.8 * (f.perimeter() / 6.284) ** 2 <= blob_area, f.onImageEdge(),
                     (colors[0][0] + colors[1][0]) < 1.2 * sum(
-                            zip(*colors[2:])[0]))
+                        zip(*colors[2:])[0]))
                 print(filter_str)
                 img.drawText(filter_str, x, y)
                 img.show()
-                #raw_input("d")
+                # raw_input("d")
             """else:
                 if not (cropped.width > img.width * 0.8 or
                                 cropped.height > img.height * 0.8):
@@ -543,14 +543,14 @@ def morph_swt(swt):
     # raw_input("o1o")
     kernel = np.ones((30, 1), np.uint8)
     lines = frame_image(
-            Image(cv2.morphologyEx(lines.getNumpy(), cv2.MORPH_OPEN, kernel)), color=(255, 255, 255))
+        Image(cv2.morphologyEx(lines.getNumpy(), cv2.MORPH_OPEN, kernel)), color=(255, 255, 255))
     lines = frame_image(
-            Image(cv2.morphologyEx(lines.getNumpy(), cv2.MORPH_OPEN, kernel)), color=(255, 255, 255))
+        Image(cv2.morphologyEx(lines.getNumpy(), cv2.MORPH_OPEN, kernel)), color=(255, 255, 255))
     # lines.show()
     # raw_input("o2o")
     kernel = np.ones((1, 4), np.uint8)
     lines = frame_image(
-            Image(cv2.morphologyEx(lines.getNumpy(), cv2.MORPH_OPEN, kernel)), color=(255, 255, 255))
+        Image(cv2.morphologyEx(lines.getNumpy(), cv2.MORPH_OPEN, kernel)), color=(255, 255, 255))
     return lines
     kernel = np.ones((4, 1), np.uint8)
     lines = frame_image(Image(cv2.morphologyEx(lines.getNumpy(), cv2.MORPH_CLOSE, kernel)), color=(255, 255, 255))
@@ -770,7 +770,7 @@ def horizontal_close(img, morph=cv2.MORPH_CLOSE):
     lines = img
     kernel = np.ones((min(7, (img.width + 4) // 2), 1), np.uint8)
     lines = Image(
-            cv2.morphologyEx(img.invert().getNumpy(), morph, kernel)).erode().dilate().erode(3).invert()
+        cv2.morphologyEx(img.invert().getNumpy(), morph, kernel)).erode().dilate().erode(3).invert()
     return lines
 
 
@@ -778,7 +778,7 @@ def vertical_morph(img, morph=cv2.MORPH_CLOSE):
     lines = img
     kernel = np.ones((1, min(7, (img.width + 4) // 2)), np.uint8)
     lines = Image(
-            cv2.morphologyEx(img.invert().getNumpy(), morph, kernel)).dilate().erode().dilate(3).invert()
+        cv2.morphologyEx(img.invert().getNumpy(), morph, kernel)).dilate().erode().dilate(3).invert()
     return lines
 
 
@@ -826,6 +826,27 @@ def img_to_1d_gray(img):
     return img.toGray().getNumpy()[:, :, 0].reshape(img.height * img.width)
 
 
+def img_from_csv_line(img, height, width, label_count=1):
+    return Image(np.array([int(i) for i in img.strip().split(",")[label_count:]]).reshape(height, width))
+
+
+def random_invert_crop(img, full=True):
+    if not full:
+        x = random.randint(0, img.width // 2)
+        y = random.randint(0, img.height // 2)
+        w = random.randint(1, img.width - 1 - x)
+        h = random.randint(1, img.width - 1 - y)
+        new_im = img.crop(x, y, w, h).invert()
+        new_im = img.blit(new_im, (x, y)).applyLayers()
+    else:
+        new_im = img.invert()
+    return new_im
+
+
+def img_to_csv_line(image):
+    return ",".join(str(x) for x in img_to_1d_gray(image)) + "\n"
+
+
 def csv_to_img(csv_name, label_count=1):
     """@param csv_name: of a file that contains labels in its first columns and then pixel values"""
     with open(csv_name, "r") as csv_file:
@@ -834,6 +855,9 @@ def csv_to_img(csv_name, label_count=1):
         # print(len(lines[0]) - label_count)
         height = width = sqrt(len(lines[0].strip().split(",")) - label_count)
         for img in lines:
+            # image = img_from_csv_line(img, label_count, height, width)
+            # image = random_invert_crop(image)
+            # csv_file.write(img_to_csv_line(image))
             Image(np.array([int(i) for i in img.strip().split(",")[label_count:]]).reshape(height, width)).show()
 
 
