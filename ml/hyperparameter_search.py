@@ -235,8 +235,8 @@ def random_search():
                                       '''
         save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_%d_best.hdf5" % i,
                                       best_of_the_bests=best_of_the_bests, verbose=1,
-                                      save_best_only=True,patience=5)
-        early_stop = EarlyStopping(monitor='val_acc', patience=10, verbose=0, mode='auto')
+                                      save_best_only=True,patience=3)
+        early_stop = EarlyStopping(monitor='val_acc', patience=15, verbose=0, mode='auto')
         my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
                                         reshape_output=cnn_model.reshape_str_output)
 
