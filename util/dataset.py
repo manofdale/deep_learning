@@ -152,10 +152,10 @@ def merge_with_the_next_dataset(main_dataset='/home/agp/workspace/deep_learning/
 def merge_all_datasets():
     with open("/home/agp/workspace/deep_learning/datasets/all_combined.csv", "w") as dodo, open(
             "/home/agp/workspace/deep_learning/mnist/train.csv") as train4, open(
-        "/home/agp/workspace/deep_learning/streetView/train3.csv", "r") as train3, open(
-        "/home/agp/workspace/deep_learning/cifar/cifar.csv") as train5, open(
-        "/home/agp/workspace/deep_learning/streetView/new_dataset/train2.csv", "r") as train2, open(
-        "/home/agp/workspace/deep_learning/streetView/train.csv", "r") as train:
+            "/home/agp/workspace/deep_learning/streetView/train3.csv", "r") as train3, open(
+            "/home/agp/workspace/deep_learning/cifar/cifar.csv") as train5, open(
+            "/home/agp/workspace/deep_learning/streetView/new_dataset/train2.csv", "r") as train2, open(
+            "/home/agp/workspace/deep_learning/streetView/train.csv", "r") as train:
         for i in train:
             if len(i.strip()) != 0:
                 dodo.write(i.strip() + "\n")
@@ -197,28 +197,62 @@ def dilute_dataset(main_dataset, new_dataset):
     with open(main_dataset, "r") as train, open(new_dataset, "w") as dodo:
         first = True
         for i in train:
+            i = i.strip()
             if first or random.randint(0, 10) < 4:  # random sample training set
-                if len(i.strip()) != 0:
+                if len(i) != 0:
                     if first:
                         dodo.write(i.strip() + "\n")
                         first = False
                     elif random.random() < 0.5:
-                        image = misc.img_from_csv_line(i.strip(), height=28, width=28)
+                        label = misc.find_between_labels(i, None, ',', scheme='11', around_first=False)
+                        if random.random() < 0.01:
+                            print(label)
+                        image = misc.img_from_csv_line(i, height=28, width=28)
                         image = misc.random_invert_crop(image)
-                        dodo.write(misc.img_to_csv_line(image))
+                        dodo.write(label+","+misc.img_to_csv_line(image))
                     else:
                         dodo.write(i.strip() + "\n")
 
 
-dilute_dataset("/home/agp/workspace/deep_learning/datasets/all_combined.csv",
-               "/home/agp/workspace/deep_learning/datasets/all_combined_diluted.csv")
+#dilute_dataset("/home/agp/workspace/deep_learning/datasets/all_combined.csv",
+#               "/home/agp/workspace/deep_learning/datasets/all_combined_diluted.csv")
 
 
-def check_integrity(csv_db, dim):
+def check_integrity(csv_db, dim, skip=True, label_count=1):
+    """ check whether the number of items at each line equals to dim
+    :param csv_db: .csv dataset path
+    :param dim: number of elements at each line
+    :param skip: whether to skip the first line or not
+    :return: True if integrity check didn't fail
+    """
+    import logging
     with open(csv_db, "r") as db:
-        skip = True
         for line in db:
             if skip:
                 skip = False
                 continue
-            line.strip().split(",")
+            ar = line.strip().split(",")
+            if len(ar) == 0:
+                continue
+            if len(ar) != dim:
+                print("integrity check failed:")
+                print(ar)
+                print(len(ar))
+                return False
+            for i, j in enumerate(ar):
+                if i < label_count:
+                    if j not in string.digits + string.ascii_letters+'*':
+                        logging.error("something is wrong with the labels")
+                        print(j)
+                        return False
+                else:
+                    try:
+                        float(j)
+                    except:
+                        print("can not convert %s to float" % i)
+        return True
+
+
+#raw_input("check?")
+#print(os.curdir)
+#check_integrity("../data/dataset/all_combined_diluted.csv", 784 + 1)

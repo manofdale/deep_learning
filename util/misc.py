@@ -1258,3 +1258,106 @@ def key_compare(char1, char2):
         return char1.rectangle[1] + char1.rectangle[3] < char2.rectangle[1]
     else:
         return char1.rectangle[1] >= char2.rectangle[1] + char2.rectangle[3]
+
+
+def after_label_or_zero(text, label, reverse=False):
+    if reverse:
+        start_i = text.rfind(label)
+    else:
+        start_i = text.find(label)
+    if start_i < 0:
+        return 0
+    return start_i + len(label)
+
+
+def before_label_or_zero(text, label, reverse=False):
+    if reverse:
+        start_i = text.rfind(label)
+    else:
+        start_i = text.find(label)
+    if start_i < 0:
+        return 0
+    return start_i
+
+
+def find_between_labels(text, first_label, last_label, scheme='01', around_first=True):
+    """ find the slice of text that is between the given labels
+
+    :param text: input string
+    :param first_label:
+    :param last_label:
+    :param scheme: '01', '10', '00' or '11', (e.g. 01: reverse search for first label, normal for second)
+    :return: string found between the labels or empty string
+    """
+    if first_label is None:
+        first_label = ""
+    if last_label is None:
+        last_label = ""
+    if text is None:
+        return ""
+    if not isinstance(first_label, basestring):
+        first_label = str(first_label)
+    if not isinstance(last_label, basestring):
+        last_label = str(last_label)
+    if around_first:
+        if scheme[0] == '1':
+            start_i = after_label_or_zero(text, first_label)
+        else:  # scheme[0]=='l'
+            start_i = after_label_or_zero(text, first_label, reverse=True)
+        if scheme[1] == '1':
+            end_i = before_label_or_zero(text[start_i:], last_label) + start_i
+        else:  # scheme[1]=='l'
+            end_i = before_label_or_zero(text, last_label, reverse=True)
+    else:  # search around the last label
+        if scheme[1] == '1':
+            end_i = before_label_or_zero(text, last_label)
+        else:  # scheme[1]=='l'
+            end_i = before_label_or_zero(text, last_label, reverse=True)
+        if scheme[0] == '1':
+            start_i = after_label_or_zero(text, first_label)
+        else:  # scheme[0]=='l'
+            start_i = after_label_or_zero(text[:end_i], first_label, reverse=True)
+    if end_i < start_i:
+        logging.warn(
+                "Can only find a reverse interval from %s to %s: %s" % (end_i, start_i, text[start_i:end_i].strip()))
+        return ""
+    return text[start_i:end_i].strip()
+
+
+def list3d_to_df(list3d):
+    """[[],..],[[],..]"""
+    import pandas as pd
+    print(pd.DataFrame(data=list3d))
+
+
+def get_all_files(input_folder, check=lambda f: f[-4:] == '.mp4'):
+    import glob
+    files = glob.glob(input_folder)
+    print(files)
+    return [f for f in files if len(f) > 4 and check(f)]
+
+
+def move_files(folder_dict, path):
+    """move files in a given path to the target folders there, according to the dictionary
+    :param folder_dict: {folder_name1:[file1,file2]}
+    :param path: files will be searched and moved into the folders which will be created under this path
+    """
+    import shutil
+    for key, val in folder_dict.items():
+        print(key)
+        if not os.path.isdir(path + key):
+            os.mkdir(path + key)
+        for i in val:
+            print(i, path + key + "/" + get_file_name(i, no_extension=False))
+            shutil.move(i, path + key + "/" + get_file_name(i, no_extension=False))
+
+
+def get_file_name(input_file, no_extension=True):
+    """get only the file name and no extension by default, if no_extension is False get the full file name"""
+    if no_extension:
+        return input_file[input_file.rfind("/") + 1:input_file.rfind(".")]
+    else:
+        return input_file[input_file.rfind("/") + 1:]
+
+def convert_xs(xs, converter=lambda x: float(x[:-1])):
+    return [converter(x) for x in xs]
