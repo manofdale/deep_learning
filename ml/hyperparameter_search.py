@@ -60,7 +60,7 @@ def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r):
 
 def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=3, nb_filters=42,
                       nb_pool=1,
-                      nb_conv=3, nb_classes=47, cnn_dropout_limit=0.25, dropout_limit=0.75, hidden_layer_limit=1024,
+                      nb_conv=3, nb_classes=47, cnn_dropout_limit=0.4, dropout_limit=0.5, hidden_layer_limit=1024,
                       border_modes=['same'], optimizers=[],  # 'adadelta'],
                       loss_functions=['categorical_crossentropy'],
                       cnn_activation_functions=['relu'], dense_activation_functions=['relu'],
@@ -85,7 +85,7 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=3, nb_f
         if hard_limit < 8:
             break
         activation_func = cnn_activation_functions[random.randint(0, len(cnn_activation_functions) - 1)]
-        dropout_rate = random.random() * cnn_dropout_limit
+        dropout_rate = random.random() * cnn_dropout_limit * random.random()
         nb_filter = 10 + random.randint(0, nb_filters)
         layer_limit = random.randint(2, 6)
         r = 1 + random.randint(0, layer_limit - 1)
@@ -114,19 +114,19 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=3, nb_f
     momentum = random.random() * 0.8 + 0.12
 
     nesterov = random.random() < 0.5
-    decay =random.random()*1e-5
+    decay = random.random() * 1e-5
     config["sgd_lr_init"] = lr
     config["sgd_momentum"] = momentum
     config["sgd_nesterov"] = nesterov
-    config["sgd_decay"]=decay
+    config["sgd_decay"] = decay
     # TODO add other configs
     ''' sgd = SGD(lr=dict_config["sgd_lr_init"],
               momentum=dict_config["sgd_momentum"],
               decay=dict_config["sgd_decay"],
               nesterov=dict_config["sgd_nesterov"])'''
-    #optimizers.append(sgd)
-    #optimizer = optimizers[random.randint(0, len(optimizers) - 1)]
-    #config["optimizer"] = optimizer
+    # optimizers.append(sgd)
+    # optimizer = optimizers[random.randint(0, len(optimizers) - 1)]
+    # config["optimizer"] = optimizer
     config["loss_function"] = loss_function
     return config
 
@@ -227,7 +227,7 @@ def random_search():
         save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_%d_best.hdf5" % i,
                                       best_of_the_bests=best_of_the_bests, verbose=1,
                                       save_best_only=True)
-        early_stop = EarlyStopping(monitor='val_acc', patience=15, verbose=0, mode='auto')
+        early_stop = EarlyStopping(monitor='val_acc', patience=10, verbose=0, mode='auto')
         my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
                                         reshape_output=cnn_model.reshape_str_output)
 
