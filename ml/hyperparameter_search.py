@@ -51,7 +51,8 @@ def check_roughly_monotonic(ar, limit_n=3, best=-np.inf, cmp=lambda x, y: x < y)
         if doing_well is False:
             break
     steps /= k
-    print("this config has the performance: %s"%best)
+
+    print("this config has the performance: %s" % best)
     return doing_well, steps
 
 
@@ -61,8 +62,9 @@ def score_training_history(log_history, patience=5):  # patience is the number o
     good, score = check_roughly_monotonic(log_history, limit_n=patience)
     # TODO add other ways to check the history and combine the scores
     if good:
-        return patience - int(score)
-    return 0
+        return 2*patience - int(score)
+    else:
+        return score
 
 
 class MyModelCheckpoint(ModelCheckpoint):
@@ -270,7 +272,7 @@ def init_trainer():
 def random_search(meta, my_trainer):
     best_of_the_bests = -np.inf
     for i in range(0, 50):
-        print("*********** batch:%d **********"%i)
+        print("*********** batch:%d **********" % i)
         training_patience = 8
         model = None
         for tr in range(0, 50):
