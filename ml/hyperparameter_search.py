@@ -64,7 +64,7 @@ def score_training_history(log_history, patience=5):  # patience is the number o
     if good:
         return 2*patience - int(score)
     else:
-        return score
+        return int(score)
 
 
 class MyModelCheckpoint(ModelCheckpoint):
