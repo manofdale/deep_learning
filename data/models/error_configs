@@ -19,3 +19,52 @@ error:
  'dense_layer_size': [738, 921, 302], 'nb_classes': 47, 'sgd_lr_init': 0.39295816845829845, 'sgd_nesterov': True,
  'nb_filter': [51, 32], 'loss_function': 'categorical_crossentropy', 'nb_repeat': [1, 3, 2, 2], 'nb_conv': [1, 1],
  'img_rows': 28}
+
+ {'nb_pool': [3], 'activation': ['relu', 'relu', 'relu', 'relu', 'softmax'], 'sgd_momentum': 0.789816712153422,
+ 'img_cols': 28, 'sgd_decay': 2.218852704503124e-06,
+ 'dropout': [0.09585935494970155, 0.03562129715029411, 0.4401553036802669], 'border_mode': 'same',
+ 'dense_layer_size': [472, 661], 'nb_classes': 47, 'sgd_lr_init': 0.46095309787729916, 'sgd_nesterov': True,
+ 'nb_filter': [26, 47], 'loss_function': 'categorical_crossentropy', 'nb_repeat': [3, 2, 1], 'nb_conv': [1, 7],
+ 'img_rows': 28}
+
+ {'nb_pool': [2], 'activation': ['relu', 'relu', 'relu', 'softmax'], 'sgd_momentum': 0.20238460221740764,
+ 'img_cols': 28, 'sgd_decay': 6.868576852383391e-06, 'dropout': [0.06256056746209016, 0.13599982220040124],
+ 'border_mode': 'same', 'dense_layer_size': [762], 'nb_classes': 47, 'sgd_lr_init': 0.19604901908916095,
+ 'sgd_nesterov': True, 'nb_filter': [47, 16], 'loss_function': 'categorical_crossentropy', 'nb_repeat': [4, 2],
+ 'nb_conv': [3, 5], 'img_rows': 28}
+
+ {'nb_pool': [3], 'activation': ['relu', 'relu', 'softmax'], 'sgd_momentum': 0.5955006336801182, 'img_cols': 28,
+ 'sgd_decay': 6.95103051671966e-06, 'dropout': [0.012146446869758045], 'border_mode': 'same', 'dense_layer_size': [],
+ 'nb_classes': 47, 'sgd_lr_init': 0.5966107616156012, 'sgd_nesterov': True, 'nb_filter': [52, 34],
+ 'loss_function': 'categorical_crossentropy', 'nb_repeat': [2], 'nb_conv': [3, 1], 'img_rows': 28}
+
+ {'nb_pool': [2], 'activation': ['relu', 'relu', 'relu', 'relu', 'softmax'], 'sgd_momentum': 0.38139297655359355,
+ 'img_cols': 28, 'sgd_decay': 7.454869869025224e-06,
+ 'dropout': [0.052792860947737656, 0.4128819054465114, 0.20610844039942422], 'border_mode': 'same',
+ 'dense_layer_size': [25, 807], 'nb_classes': 47, 'sgd_lr_init': 0.7173036938486458, 'sgd_nesterov': False,
+ 'nb_filter': [23, 35], 'loss_function': 'categorical_crossentropy', 'nb_repeat': [3, 2, 3], 'nb_conv': [5, 7],
+ 'img_rows': 28}
+
+ {'nb_pool': [3], 'activation': ['relu', 'relu', 'relu', 'softmax'], 'sgd_momentum': 0.23973116156538665,
+ 'img_cols': 28, 'sgd_decay': 4.374857952945443e-06, 'dropout': [0.02608297344441543, 0.4021377934826597],
+ 'border_mode': 'same', 'dense_layer_size': [178], 'nb_classes': 47, 'sgd_lr_init': 0.3028176018160776,
+ 'sgd_nesterov': False, 'nb_filter': [48, 34], 'loss_function': 'categorical_crossentropy', 'nb_repeat': [3, 2],
+ 'nb_conv': [1, 5], 'img_rows': 28}
+
+{'nb_pool': [2], 'activation': ['relu', 'relu', 'softmax'], 'sgd_momentum': 0.33140027169355857, 'img_cols': 28,
+'sgd_decay': 5.632231949127555e-06, 'dropout': [0.09762457841327124], 'border_mode': 'same', 'dense_layer_size': [],
+'nb_classes': 47, 'sgd_lr_init': 0.4341101292628772, 'sgd_nesterov': True, 'nb_filter': [37, 33],
+'loss_function': 'categorical_crossentropy', 'nb_repeat': [5], 'nb_conv': [7, 3], 'img_rows': 28}
+
+{'nb_pool': [2], 'activation': ['relu', 'relu', 'softmax'], 'sgd_momentum': 0.2603660605468081, 'img_cols': 28,
+'sgd_decay': 8.67946573016237e-06, 'dropout': [0.024465664961700027], 'border_mode': 'same', 'dense_layer_size': [],
+'nb_classes': 47, 'sgd_lr_init': 0.6572455589803703, 'sgd_nesterov': True, 'nb_filter': [43, 37],
+'loss_function': 'categorical_crossentropy', 'nb_repeat': [2], 'nb_conv': [7, 3], 'img_rows': 28}
+
+{'nb_pool': [3], 'activation': ['relu', 'relu', 'relu', 'relu', 'softmax'], 'sgd_momentum': 0.904385647483561,
+'img_cols': 28, 'sgd_decay': 4.918072724422894e-06, '
+dropout': [0.06695996061950729, 0.3988460296896222, 0.12732593456217484], 'border_mode': 'same',
+'dense_layer_size': [591, 1022], 'nb_classes': 47, 'sgd_lr_init': 0.6029689692273471, 'sgd_nesterov': True,
+'nb_filter': [25, 10], 'loss_function': 'categorical_crossentropy', 'nb_repeat': [1, 3, 1], 'nb_conv': [7, 1],
+'img_rows': 28}
+

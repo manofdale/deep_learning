@@ -33,11 +33,10 @@ def gradient_1d(function_points):
     if len(function_points) < 2:
         return function_points
     gradient = []
-    for i in range(0, len(function_points)):
+    for i, _ in enumerate(function_points):
         left = function_points[max(i - 1, 0)]
         right = function_points[min(i + 1, len(function_points) - 1)]
-        x = function_points[i]
-        gradient.append((x - left + right - x) / 2.0)  # + (right - left) / 2.0) / 3.0)
+        gradient.append((right-left) / 2.0)  # + (right - left) / 2.0) / 3.0)
     return gradient
 
 
@@ -1319,7 +1318,7 @@ def find_between_labels(text, first_label, last_label, scheme='01', around_first
             start_i = after_label_or_zero(text[:end_i], first_label, reverse=True)
     if end_i < start_i:
         logging.warn(
-                "Can only find a reverse interval from %s to %s: %s" % (end_i, start_i, text[start_i:end_i].strip()))
+            "Can only find a reverse interval from %s to %s: %s" % (end_i, start_i, text[start_i:end_i].strip()))
         return ""
     return text[start_i:end_i].strip()
 
@@ -1358,6 +1357,7 @@ def get_file_name(input_file, no_extension=True):
         return input_file[input_file.rfind("/") + 1:input_file.rfind(".")]
     else:
         return input_file[input_file.rfind("/") + 1:]
+
 
 def convert_xs(xs, converter=lambda x: float(x[:-1])):
     return [converter(x) for x in xs]

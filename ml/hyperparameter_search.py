@@ -20,6 +20,51 @@ from util import misc
 import random
 
 
+def append_to_dataset(dataset, score, dict_config):
+    """for now"""
+    dataset.append([score + 1, dict_config])
+
+
+def check_roughly_monotonic(ar, limit_n=3, best=-np.inf, cmp=lambda x, y: x < y):
+    """check whether given list of numbers is roughly increasing
+
+    :param n: is there a better value than the max within n steps
+    :return True if there is
+    """
+    i = 0
+    steps = 0.0
+    k = 0.0
+    while i < len(ar):
+        doing_well = False
+        k += 1.0
+        for j in range(limit_n):
+            if i >= len(ar):
+                doing_well = True  # survived this far so it's ok
+                steps += j
+                break
+            if cmp(best, ar[i]):
+                best = ar[i]
+                doing_well = True
+                steps += j
+                continue
+            i += 1
+        if doing_well is False:
+            break
+    steps /= k
+    print("this config has the performance: %s"%best)
+    return doing_well, steps
+
+
+def score_training_history(log_history, patience=5):  # patience is the number of classes
+    """return an integer score, the bigger the better"""
+    # grad=misc.gradient_1d(log_history)
+    good, score = check_roughly_monotonic(log_history, limit_n=patience)
+    # TODO add other ways to check the history and combine the scores
+    if good:
+        return patience - int(score)
+    return 0
+
+
 class MyModelCheckpoint(ModelCheckpoint):
     def __init__(self, filepath, best_of_the_bests=np.inf, monitor='val_acc', verbose=0,
                  save_best_only=False, mode='auto', lr_divide=3.0, patience=3.0):
@@ -29,10 +74,12 @@ class MyModelCheckpoint(ModelCheckpoint):
         self.lr_divide = lr_divide
         self.best_of_the_bests = best_of_the_bests
         self.patience_ctr = 0
-        self.patience=patience
+        self.patience = patience
+        self.log_history = []
 
     def on_epoch_end(self, epoch, logs={}):
         super(MyModelCheckpoint, self).on_epoch_end(epoch, logs=logs)
+        self.log_history.append(logs.get(self.monitor))
         if self.old_best != self.best:  # new best
             self.patience_ctr = 0
             self.old_best = self.best
@@ -128,6 +175,7 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=3, nb_f
     config["sgd_momentum"] = momentum
     config["sgd_nesterov"] = nesterov
     config["sgd_decay"] = decay
+    config["sgd_lr_divide"] = 1 + random.random() * 3
     # TODO add other configs
     ''' sgd = SGD(lr=dict_config["sgd_lr_init"],
               momentum=dict_config["sgd_momentum"],
@@ -192,7 +240,7 @@ def construct_cnn(dict_config):
     #    return None
 
 
-def random_search():
+def init_trainer():
     class Pack:
         pass
 
@@ -216,8 +264,14 @@ def random_search():
     my_trainer = Trainer(train_csv=train_csv, test_csv=None,
                          converters=None, nan_handlers=None, empty_str_handlers=None, training_parameters=tp,
                          preprocessor=prep)
+    return my_trainer
+
+
+def random_search(meta, my_trainer):
     best_of_the_bests = -np.inf
     for i in range(0, 50):
+        print("*********** batch:%d **********"%i)
+        training_patience = 8
         model = None
         for tr in range(0, 50):
             dict_config = random_cnn_config()
@@ -229,17 +283,20 @@ def random_search():
             break
         pickle.dump(dict_config, open("data/models/random_cnn_config_%d.p" % i, "wb"))
         print(dict_config)
+        meta.configs.append(dict_config)
         '''save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_%d_best.hdf5" % i,
                                       best_of_the_bests=best_of_the_bests, verbose=1,
                                       save_best_only=True)
                                       '''
         save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_%d_best.hdf5" % i,
                                       best_of_the_bests=best_of_the_bests, verbose=1,
-                                      save_best_only=True,patience=3)
-        early_stop = EarlyStopping(monitor='val_acc', patience=15, verbose=0, mode='auto')
+                                      save_best_only=True, patience=3, lr_divide=dict_config["sgd_lr_divide"])
+        early_stop = EarlyStopping(monitor='val_acc', patience=training_patience, verbose=0, mode='auto')
         my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
                                         reshape_output=cnn_model.reshape_str_output)
 
         score = my_trainer.train(callbacks=[save_best, early_stop])
+        best_of_the_bests = save_best.best_of_the_bests
+        meta.scores.append(score_training_history(save_best.log_history, patience=training_patience * 2))
         print("end of training %d" % i)
         print(score)
