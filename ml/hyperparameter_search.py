@@ -53,18 +53,18 @@ def check_roughly_monotonic(ar, limit_n=3, best=-np.inf, cmp=lambda x, y: x < y)
     steps /= k
 
     print("this config has the performance: %s" % best)
-    return doing_well, steps
+    return doing_well, steps, best
 
 
 def score_training_history(log_history, patience=5):  # patience is the number of classes
     """return an integer score, the bigger the better"""
     # grad=misc.gradient_1d(log_history)
-    good, score = check_roughly_monotonic(log_history, limit_n=patience)
+    good, score, best = check_roughly_monotonic(log_history, limit_n=patience)
     # TODO add other ways to check the history and combine the scores
     if good:
-        return 1000 - int(score)
+        return 1000 - int(score), best
     else:
-        return int(score)+1 # make sure that it is never zero
+        return int(score) + 1, best  # make sure that it is never zero
 
 
 class MyModelCheckpoint(ModelCheckpoint):
@@ -270,13 +270,24 @@ def init_trainer():
 
 
 def random_search(meta, my_trainer):
-    best_of_the_bests = -np.inf
+    import os
+    best_of_the_bests = None
+    if os.path.isfile("data/variables/best"):
+        with open("data/variables/best", "r") as best_file:
+            for i in best_file:
+                try:
+                    if len(i.strip()) > 0:
+                        best_of_the_bests = float(i)
+                except ValueError:
+                    print("warning: the file data/variable/best has nan entries")
+    if best_of_the_bests is None:
+        best_of_the_bests = -np.inf
     for i in range(0, 50):
         print("*********** batch:%d **********" % i)
         training_patience = 8
         model = None
         meta.configs.append([])
-        ix = len(meta.configs)-1
+        ix = len(meta.configs) - 1
         for tr in range(0, 50):
             dict_config = random_cnn_config()
             meta.configs[ix] = dict_config
@@ -302,5 +313,7 @@ def random_search(meta, my_trainer):
         score = my_trainer.train(callbacks=[save_best, early_stop])
         best_of_the_bests = save_best.best_of_the_bests
         meta.scores.append(score_training_history(save_best.log_history, patience=training_patience))
+        with open("data/variables/best", "w") as best_file:
+            best_file.write(best_of_the_bests)
         print("end of training %d" % i)
         print(score)

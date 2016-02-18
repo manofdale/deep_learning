@@ -19,7 +19,7 @@ for i in range(2000):
         print("this config caused an exception:")
         print(e)
         print(meta.configs[-1])
-        meta.scores.append(0)
+        meta.scores.append((0,0))
 
     print("**************************** updating the dataset file ******************************************")
     with open("data/dataset/meta", "a") as meta_file:
