@@ -10,12 +10,11 @@ from keras.models import Sequential
 from keras.optimizers import SGD
 from keras.preprocessing.image import ImageDataGenerator
 from keras import backend as K
-from keras.utils import np_utils
+from keras.regularizers import l2, activity_l2, l1, activity_l1, l1l2, activity_l1l2
 import pickle
 
 from ml import cnn_model
 from ml.trainer import Trainer
-from util import misc
 
 import random
 
@@ -109,19 +108,22 @@ def add_convolution(model, nb_filters, nb_conv, nb_pool, dropout_rate, activatio
     model.add(Dropout(dropout_rate))
 
 
-def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r):
+def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r, act_r=(l2,0.01), weight_r=(l2,0.01)):
     for i in range(r):
-        model.add(Dense(hidden_layer_size))
+        model.add(Dense(hidden_layer_size, W_regularizer=weight_r[0](l=weight_r[1]),
+                        activity_regularizer=act_r[0](l=act_r[1])))
         model.add(Activation(activation_function))
         model.add(Dropout(dropout_rate))
 
 
-def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=3, nb_filters=42,
-                      nb_pool=1,
-                      nb_conv=3, nb_classes=47, cnn_dropout_limit=0.4, dropout_limit=0.5, hidden_layer_limit=1024,
-                      border_modes=['same'], optimizers=[],  # 'adadelta'],
+def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_filters=42,
+                      nb_pool=2,
+                      nb_conv=3, nb_classes=47, lr_limit=2.5, momentum_limit=0.9, cnn_dropout_limit=0.5, dropout_limit=0.5, hidden_layer_limit=1024,
+                      border_modes=['same', 'valid'], optimizers=[],  # 'adadelta'],
                       loss_functions=['categorical_crossentropy'],
-                      cnn_activation_functions=['relu'], dense_activation_functions=['relu'],
+                      cnn_activation_functions=['relu', 'tanh', 'hard_sigmoid', 'linear'],
+                      dense_activation_functions=['relu', 'hard_sigmoid', 'linear'],
+                      regularizers=[l2, activity_l2, l1, activity_l1, l1l2, activity_l1l2],
                       final_activation='softmax',
                       ):
     border_mode = border_modes[random.randint(0, len(border_modes) - 1)]
@@ -129,7 +131,7 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=3, nb_f
     nb_filter = 10 + random.randint(0, nb_filters)
     activation_func = cnn_activation_functions[random.randint(0, len(cnn_activation_functions) - 1)]
     config = {"nb_conv": [conv], "border_mode": border_mode, "img_rows": img_rows, "img_cols": img_cols,
-              "nb_classes": nb_classes,
+              "nb_classes": nb_classes, "dense_weight_regularizers": [], "dense_activity_regularizers": [],
               "nb_pool": [], "nb_filter": [nb_filter], "dropout": [],
               "activation": [activation_func], "dense_layer_size": [], "nb_repeat": []}
     hard_limit = min(img_cols, img_rows)
@@ -140,7 +142,7 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=3, nb_f
         pool = 2 + random.randint(0, nb_pool)
         hard_limit //= pool
         print(hard_limit, pool, conv)
-        if hard_limit < 8:
+        if random.random()<0.2 or hard_limit < 4:
             break
         activation_func = cnn_activation_functions[random.randint(0, len(cnn_activation_functions) - 1)]
         dropout_rate = random.random() * cnn_dropout_limit * random.random()
@@ -154,7 +156,7 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=3, nb_f
         config["dropout"].append(dropout_rate)
         config["activation"].append(activation_func)
     for i in range(dense_limit):
-        if random.randint(0, 10) < 3:  # prevent from getting too big
+        if random.randint(0, 10) < 2:  # prevent from getting too big
             break
         hidden_layer_size = random.randint(hard_limit ** 2, hidden_layer_limit)
         dropout_rate = random.random() * dropout_limit
@@ -163,13 +165,17 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=3, cnn_limit=3, nb_f
         activation_func = dense_activation_functions[random.randint(0, len(dense_activation_functions) - 1)]
         config["nb_repeat"].append(r)
         config["dense_layer_size"].append(hidden_layer_size)
+        r = regularizers[random.randint(0, len(regularizers) - 1)]
+        config["dense_weight_regularizers"].append((r, random.random() * 0.1))
+        r = regularizers[random.randint(0, len(regularizers) - 1)]
+        config["dense_activity_regularizers"].append((r, random.random() * 0.1))
         config["dropout"].append(dropout_rate)
         config["activation"].append(activation_func)
     config["nb_classes"] = nb_classes
     config["activation"].append(final_activation)
     loss_function = loss_functions[random.randint(0, len(loss_functions) - 1)]
-    lr = random.random() * 0.8 + 0.001
-    momentum = random.random() * 0.8 + 0.12
+    lr = random.random() * lr_limit + 0.001
+    momentum = random.random() * momentum_limit + 0.01
 
     nesterov = random.random() < 0.5
     decay = random.random() * 1e-5
@@ -222,9 +228,11 @@ def construct_cnn(dict_config):
         add_convolution(model, nb_filters[i], nb_convs[i], nb_pools[i - 1], dropout_rates[i - 1], activation_funcs[i],
                         nb_repeats[i - 1])
     model.add(Flatten())
+    act_rs = dict_config["dense_activity_regularizers"]
+    weight_rs = dict_config["dense_weight_regularizers"]
     for j, k in enumerate(dense_layer_sizes):
         i += 1
-        add_dense(model, k, activation_funcs[i], dropout_rates[i - 1], nb_repeats[i - 1])
+        add_dense(model, k, activation_funcs[i], dropout_rates[i - 1], nb_repeats[i - 1], act_rs[j], weight_rs[j])
     i += 1
     # try:
     model.add(Dense(dict_config["nb_classes"]))
@@ -236,10 +244,6 @@ def construct_cnn(dict_config):
               nesterov=dict_config["sgd_nesterov"])
     model.compile(loss=dict_config["loss_function"], optimizer=sgd)
     return model
-    # except:
-    #    print("the model configuration wasn't good:")
-    #    print(dict_config)
-    #    return None
 
 
 def init_trainer():
@@ -269,7 +273,7 @@ def init_trainer():
     return my_trainer
 
 
-def random_search(meta, my_trainer):
+def init_best():
     import os
     best_of_the_bests = None
     if os.path.isfile("data/variables/best"):
@@ -282,6 +286,12 @@ def random_search(meta, my_trainer):
                     print("warning: the file data/variable/best has nan entries")
     if best_of_the_bests is None:
         best_of_the_bests = -np.inf
+    return best_of_the_bests
+
+
+def random_search(meta, my_trainer):
+    best_of_the_bests = init_best()
+
     for i in range(0, 50):
         print("*********** batch:%d **********" % i)
         training_patience = 8
@@ -298,11 +308,6 @@ def random_search(meta, my_trainer):
             print("couldn't find a valid random configuration for the given parameters")
             break
         pickle.dump(dict_config, open("data/models/random_cnn_config_%d.p" % i, "wb"))
-        print(dict_config)
-        '''save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_%d_best.hdf5" % i,
-                                      best_of_the_bests=best_of_the_bests, verbose=1,
-                                      save_best_only=True)
-                                      '''
         save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_%d_best.hdf5" % i,
                                       best_of_the_bests=best_of_the_bests, verbose=1,
                                       save_best_only=True, patience=3, lr_divide=dict_config["sgd_lr_divide"])
