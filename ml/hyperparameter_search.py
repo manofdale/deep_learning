@@ -108,10 +108,11 @@ def add_convolution(model, nb_filters, nb_conv, nb_pool, dropout_rate, activatio
     model.add(Dropout(dropout_rate))
 
 
-def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r, act_r=(l2, 0.01), weight_r=(l2, 0.01)):
+def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r, act_r=(l2, 0.01),
+              weight_r=(l2, 0.01), b_r=(l2, 0.01), init='glorot_uniform', ):
     for i in range(r):
-        model.add(Dense(hidden_layer_size, W_regularizer=weight_r[0](*weight_r[1:]),
-                        activity_regularizer=act_r[0](*act_r[1:])))
+        model.add(Dense(hidden_layer_size, init=init, W_regularizer=weight_r[0](*weight_r[1:]),
+                        activity_regularizer=act_r[0](*act_r[1:], b_regularizer=b_r[0](*b_r))))
         # model.layers[-1].regularizers[-1].set_param(model.layers[-1].get_params()[0][0])
         model.add(Activation(activation_function))
         model.add(Dropout(dropout_rate))
@@ -121,6 +122,7 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_
                       nb_pool=2,
                       nb_conv=3, nb_classes=47, lr_limit=2.5, momentum_limit=0.9, cnn_dropout_limit=0.5,
                       dropout_limit=0.5, hidden_layer_limit=1024,
+                      inits=['zero', 'normal', 'uniform', 'glorot_uniform', 'glorot_normal', 'he_normal', 'he_uniform'],
                       border_modes=['same', 'valid'], optimizers=[],  # 'adadelta'],
                       loss_functions=['categorical_crossentropy'],
                       cnn_activation_functions=['relu', 'tanh', 'hard_sigmoid', 'linear'],
@@ -134,8 +136,9 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_
     nb_filter = 10 + random.randint(0, nb_filters)
     activation_func = cnn_activation_functions[random.randint(0, len(cnn_activation_functions) - 1)]
     config = {"nb_conv": [conv], "border_mode": border_mode, "img_rows": img_rows, "img_cols": img_cols,
-              "nb_classes": nb_classes, "dense_weight_regularizers": [], "dense_activity_regularizers": [],
-              "bias_regularizers":[],
+              "nb_classes": nb_classes, "dense_inits": [], "dense_weight_regularizers": [],
+              "dense_activity_regularizers": [],
+              "bias_regularizers": [],
               "nb_pool": [], "nb_filter": [nb_filter], "dropout": [],
               "activation": [activation_func], "dense_layer_size": [], "nb_repeat": []}
     hard_limit = min(img_cols, img_rows)
@@ -166,6 +169,8 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_
         dropout_rate = random.random() * dropout_limit
         layer_limit = random.randint(2, 4)
         r = 1 + random.randint(0, layer_limit - 1)
+        init = inits[random.randint(0, len(inits) - 1)]
+        config["dense_inits"].append(init)
         activation_func = dense_activation_functions[random.randint(0, len(dense_activation_functions) - 1)]
         config["nb_repeat"].append(r)
         config["dense_layer_size"].append(hidden_layer_size)
@@ -245,9 +250,12 @@ def construct_cnn(dict_config):
     model.add(Flatten())
     act_rs = dict_config["dense_activity_regularizers"]
     weight_rs = dict_config["dense_weight_regularizers"]
+    b_rs = dict_config["bias_regularizers"]
+    inits = dict_config["dense_inits"]
     for j, k in enumerate(dense_layer_sizes):
         i += 1
-        add_dense(model, k, activation_funcs[i], dropout_rates[i - 1], nb_repeats[i - 1], act_rs[j], weight_rs[j])
+        add_dense(model, k, activation_funcs[i], dropout_rates[i - 1], nb_repeats[i - 1], act_rs[j], weight_rs[j],
+                  b_rs[j], init=inits[j])
     i += 1
     # try:
     model.add(Dense(dict_config["nb_classes"]))
