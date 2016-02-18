@@ -19,7 +19,7 @@ for i in range(2000):
         print("this config caused an exception:")
         print(e)
         import traceback
-        traceback.print_tb()
+        print(traceback.format_exc())
         print(meta.configs[-1])
         meta.scores.append((0,0))
 

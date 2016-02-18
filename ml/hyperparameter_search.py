@@ -122,7 +122,7 @@ def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r, ac
         model.add(Dense(hidden_layer_size, init=init, W_regularizer=f_or_default(weight_r),
                         activity_regularizer=f_or_default(act_r), b_regularizer=f_or_default(b_r)))
 
-        model.layers[-1].regularizers[-1].set_param(model.layers[-1].get_params()[0][0])
+        #model.layers[-1].regularizers[-1].set_param(model.layers[-1].get_params()[0][0])
         model.add(Activation(activation_function))
         model.add(Dropout(dropout_rate))
 
