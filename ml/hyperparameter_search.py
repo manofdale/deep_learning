@@ -174,7 +174,7 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_
         config["dropout"].append(dropout_rate)
         config["activation"].append(activation_func)
     for i in range(dense_limit):
-        if random.randint(0, 10) < 2:  # prevent from getting too big
+        if random.randint(0, 10) < 1:  # prevent from getting too big
             break
         hidden_layer_size = random.randint(hard_limit ** 2, hidden_layer_limit)
         dropout_rate = random.random() * dropout_limit
@@ -214,9 +214,8 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_
     config["nb_classes"] = nb_classes
     config["activation"].append(final_activation)
     loss_function = loss_functions[random.randint(0, len(loss_functions) - 1)]
-    lr = random.random() * lr_limit + 0.001
-    momentum = random.random() * momentum_limit + 0.01
-
+    lr = random.random() * lr_limit * random.random() + 0.001
+    momentum = random.random() * momentum_limit * random.random() + 0.01
     nesterov = random.random() < 0.5
     decay = random.random() * 1e-5
     config["sgd_lr_init"] = lr
