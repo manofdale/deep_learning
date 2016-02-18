@@ -68,3 +68,19 @@ dropout': [0.06695996061950729, 0.3988460296896222, 0.12732593456217484], 'borde
 'nb_filter': [25, 10], 'loss_function': 'categorical_crossentropy', 'nb_repeat': [1, 3, 1], 'nb_conv': [7, 1],
 'img_rows': 28}
 
+{'nb_pool': [2], 'activation': ['relu', 'relu', 'softmax'], 'sgd_momentum': 0.47717328051801733, 'img_cols': 28,
+'sgd_decay': 4.5123359684249303e-07, 'dropout': [0.0392130197489023], 'border_mode': 'same',
+'sgd_lr_divide': 3.5374659462205544, 'dense_layer_size': [], 'nb_classes': 47, 'sgd_lr_init': 0.7736901865988315,
+'sgd_nesterov': True, 'nb_filter': [11, 39], 'loss_function': 'categorical_crossentropy', 'nb_repeat': [1],
+'nb_conv': [5, 5], 'img_rows': 28}
+
+{'nb_pool': [3], 'activation': ['relu', 'relu', 'relu', 'relu', 'relu', 'softmax'], 'sgd_momentum': 0.7823512918093944,
+'img_cols': 28, 'sgd_decay': 5.976405136339402e-06,
+'dropout': [0.19215037690269984, 0.48086758498569393, 0.16602294346891489, 0.38576278838564865], 'border_mode': 'same',
+'sgd_lr_divide': 2.121786642888204, 'dense_layer_size': [676, 938, 747], 'nb_classes': 47,
+'sgd_lr_init': 0.6791968112080723, 'sgd_nesterov': True, 'nb_filter': [30, 23],
+'loss_function': 'categorical_crossentropy', 'nb_repeat': [5, 2, 1, 2], 'nb_conv': [3, 3], 'img_rows': 28}
+
+
+
+
