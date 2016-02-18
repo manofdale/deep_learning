@@ -18,6 +18,8 @@ for i in range(2000):
     except Exception as e:
         print("this config caused an exception:")
         print(e)
+        import traceback
+        traceback.print_tb()
         print(meta.configs[-1])
         meta.scores.append((0,0))
 
