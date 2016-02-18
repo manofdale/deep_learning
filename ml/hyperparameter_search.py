@@ -302,7 +302,7 @@ def random_search(meta, my_trainer):
 
     for i in range(0, 50):
         print("*********** batch:%d **********" % i)
-        training_patience = 8
+        training_patience = 5
         model = None
         meta.configs.append([])
         ix = len(meta.configs) - 1
@@ -318,7 +318,7 @@ def random_search(meta, my_trainer):
         pickle.dump(dict_config, open("data/models/random_cnn_config_%d.p" % i, "wb"))
         save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_%d_best.hdf5" % i,
                                       best_of_the_bests=best_of_the_bests, verbose=1,
-                                      save_best_only=True, patience=3, lr_divide=dict_config["sgd_lr_divide"])
+                                      save_best_only=True, patience=2, lr_divide=dict_config["sgd_lr_divide"])
         early_stop = EarlyStopping(monitor='val_acc', patience=training_patience, verbose=0, mode='auto')
         my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
                                         reshape_output=cnn_model.reshape_str_output)
