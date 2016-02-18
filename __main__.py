@@ -15,8 +15,9 @@ for i in range(2000):
         hyperparameter_search.random_search(meta, trainer)
     except (KeyboardInterrupt, SystemExit):
         raise
-    except:
+    except Exception as e:
         print("this config caused an exception:")
+        print(e)
         print(meta.configs[-1])
         meta.scores.append(0)
 

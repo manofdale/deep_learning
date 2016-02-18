@@ -62,7 +62,7 @@ def score_training_history(log_history, patience=5):  # patience is the number o
     good, score = check_roughly_monotonic(log_history, limit_n=patience)
     # TODO add other ways to check the history and combine the scores
     if good:
-        return 2*patience - int(score)
+        return 2 * patience - int(score)
     else:
         return int(score)
 
@@ -275,11 +275,11 @@ def random_search(meta, my_trainer):
         print("*********** batch:%d **********" % i)
         training_patience = 8
         model = None
-        meta.append([])
-        ix=len(meta)
+        meta.configs.append([])
+        ix = len(meta.configs)-1
         for tr in range(0, 50):
             dict_config = random_cnn_config()
-            meta[ix]=dict_config
+            meta.configs[ix] = dict_config
             model = construct_cnn(dict_config)
             if model is not None:
                 break
