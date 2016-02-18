@@ -112,7 +112,7 @@ def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r, ac
     for i in range(r):
         model.add(Dense(hidden_layer_size, W_regularizer=weight_r[0](*weight_r[1:]),
                         activity_regularizer=act_r[0](*act_r[1:])))
-        model.layers[-1].regularizers[-1].set_param(model.layers[-1].get_params()[0][0])
+        # model.layers[-1].regularizers[-1].set_param(model.layers[-1].get_params()[0][0])
         model.add(Activation(activation_function))
         model.add(Dropout(dropout_rate))
 
@@ -125,7 +125,8 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_
                       loss_functions=['categorical_crossentropy'],
                       cnn_activation_functions=['relu', 'tanh', 'hard_sigmoid', 'linear'],
                       dense_activation_functions=['relu', 'hard_sigmoid', 'linear'],
-                      regularizers=[l2, activity_l2, l1, activity_l1, l1l2, activity_l1l2],
+                      regularizers=[l1, l2, l1l2, ],
+                      activity_regularizers=[activity_l1, activity_l2, activity_l1l2],
                       final_activation='softmax',
                       ):
     border_mode = border_modes[random.randint(0, len(border_modes) - 1)]
@@ -134,6 +135,7 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_
     activation_func = cnn_activation_functions[random.randint(0, len(cnn_activation_functions) - 1)]
     config = {"nb_conv": [conv], "border_mode": border_mode, "img_rows": img_rows, "img_cols": img_cols,
               "nb_classes": nb_classes, "dense_weight_regularizers": [], "dense_activity_regularizers": [],
+              "bias_regularizers":[],
               "nb_pool": [], "nb_filter": [nb_filter], "dropout": [],
               "activation": [activation_func], "dense_layer_size": [], "nb_repeat": []}
     hard_limit = min(img_cols, img_rows)
@@ -167,17 +169,21 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_
         activation_func = dense_activation_functions[random.randint(0, len(dense_activation_functions) - 1)]
         config["nb_repeat"].append(r)
         config["dense_layer_size"].append(hidden_layer_size)
-        r = regularizers[random.randint(0, len(regularizers) - 1)]
-        config["dense_weight_regularizers"].append((r, random.random() * 0.1))
-        if r == l1l2:
-            config["dense_weight_regularizers"].append((r, random.random() * 0.1, random.random() * 0.1))
+        reg = regularizers[random.randint(0, len(regularizers) - 1)]
+        if reg == l1l2:
+            config["dense_weight_regularizers"].append((reg, random.random() * 0.1, random.random() * 0.1))
         else:
-            config["dense_weight_regularizers"].append((r, random.random() * 0.1))
-        r = regularizers[random.randint(0, len(regularizers) - 1)]
-        if r == l1l2:
-            config["dense_activity_regularizers"].append((r, random.random() * 0.1,random.random() * 0.1,))
+            config["dense_weight_regularizers"].append((reg, random.random() * 0.1))
+        reg = regularizers[random.randint(0, len(regularizers) - 1)]
+        if reg == l1l2:
+            config["bias_regularizers"].append((reg, random.random() * 0.1, random.random() * 0.1))
         else:
-            config["dense_activity_regularizers"].append((r, random.random() * 0.1))
+            config["bias_regularizers"].append((reg, random.random() * 0.1))
+        reg = activity_regularizers[random.randint(0, len(activity_regularizers) - 1)]
+        if reg == activity_l1l2:
+            config["dense_activity_regularizers"].append((reg, random.random() * 0.1, random.random() * 0.1,))
+        else:
+            config["dense_activity_regularizers"].append((reg, random.random() * 0.1))
         config["dropout"].append(dropout_rate)
         config["activation"].append(activation_func)
     config["nb_classes"] = nb_classes

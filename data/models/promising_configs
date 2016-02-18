@@ -28,3 +28,8 @@
 'img_rows': 28}
 
 
+{'nb_pool': [3], 'activation': ['relu', 'relu', 'relu', 'softmax'], 'sgd_momentum': 0.2929383048793105, 'img_cols': 28,
+'sgd_decay': 4.9961329710525895e-06, 'dropout': [0.32205831654829564, 0.2700192779679143], 'border_mode': 'same',
+'sgd_lr_divide': 2.5988872369957066, 'dense_layer_size': [979], 'nb_classes': 47, 'sgd_lr_init': 0.3379692915932156,
+'sgd_nesterov': False, 'nb_filter': [24, 39], 'loss_function': 'categorical_crossentropy', 'nb_repeat': [4, 2],
+'nb_conv': [7, 3], 'img_rows': 28}
