@@ -301,6 +301,6 @@ def random_search(meta, my_trainer):
 
         score = my_trainer.train(callbacks=[save_best, early_stop])
         best_of_the_bests = save_best.best_of_the_bests
-        meta.scores.append(score_training_history(save_best.log_history, patience=training_patience * 2))
+        meta.scores.append(score_training_history(save_best.log_history, patience=training_patience * 3))
         print("end of training %d" % i)
         print(score)

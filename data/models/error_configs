@@ -81,6 +81,11 @@ dropout': [0.06695996061950729, 0.3988460296896222, 0.12732593456217484], 'borde
 'sgd_lr_init': 0.6791968112080723, 'sgd_nesterov': True, 'nb_filter': [30, 23],
 'loss_function': 'categorical_crossentropy', 'nb_repeat': [5, 2, 1, 2], 'nb_conv': [3, 3], 'img_rows': 28}
 
+{'nb_pool': [2], 'activation': ['relu', 'relu', 'softmax'], 'sgd_momentum': 0.805672352988062, 'img_cols': 28,
+'sgd_decay': 8.323302007462071e-06, 'dropout': [0.17352572999726304], 'border_mode': 'same',
+'sgd_lr_divide': 3.3730374105809755, 'dense_layer_size': [], 'nb_classes': 47, 'sgd_lr_init': 0.7606714090549814,
+'sgd_nesterov': True, 'nb_filter': [39, 52], 'loss_function': 'categorical_crossentropy', 'nb_repeat': [2],
+'nb_conv': [7, 1], 'img_rows': 28}
 
 
 
