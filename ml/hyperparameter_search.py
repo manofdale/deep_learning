@@ -62,9 +62,9 @@ def score_training_history(log_history, patience=5):  # patience is the number o
     good, score = check_roughly_monotonic(log_history, limit_n=patience)
     # TODO add other ways to check the history and combine the scores
     if good:
-        return 2 * patience - int(score)
+        return 1000 - int(score)
     else:
-        return int(score)
+        return int(score)+1 # make sure that it is never zero
 
 
 class MyModelCheckpoint(ModelCheckpoint):
@@ -301,6 +301,6 @@ def random_search(meta, my_trainer):
 
         score = my_trainer.train(callbacks=[save_best, early_stop])
         best_of_the_bests = save_best.best_of_the_bests
-        meta.scores.append(score_training_history(save_best.log_history, patience=training_patience * 3))
+        meta.scores.append(score_training_history(save_best.log_history, patience=training_patience))
         print("end of training %d" % i)
         print(score)
