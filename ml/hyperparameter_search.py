@@ -108,17 +108,18 @@ def add_convolution(model, nb_filters, nb_conv, nb_pool, dropout_rate, activatio
     model.add(Dropout(dropout_rate))
 
 
-def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r, act_r=(l2,0.01), weight_r=(l2,0.01)):
+def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r, act_r=(l2, 0.01), weight_r=(l2, 0.01)):
     for i in range(r):
-        model.add(Dense(hidden_layer_size, W_regularizer=weight_r[0](l=weight_r[1]),
-                        activity_regularizer=act_r[0](l=act_r[1])))
+        model.add(Dense(hidden_layer_size, W_regularizer=weight_r[0](*weight_r[1:]),
+                        activity_regularizer=act_r[0](*act_r[1:])))
         model.add(Activation(activation_function))
         model.add(Dropout(dropout_rate))
 
 
 def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_filters=42,
                       nb_pool=2,
-                      nb_conv=3, nb_classes=47, lr_limit=2.5, momentum_limit=0.9, cnn_dropout_limit=0.5, dropout_limit=0.5, hidden_layer_limit=1024,
+                      nb_conv=3, nb_classes=47, lr_limit=2.5, momentum_limit=0.9, cnn_dropout_limit=0.5,
+                      dropout_limit=0.5, hidden_layer_limit=1024,
                       border_modes=['same', 'valid'], optimizers=[],  # 'adadelta'],
                       loss_functions=['categorical_crossentropy'],
                       cnn_activation_functions=['relu', 'tanh', 'hard_sigmoid', 'linear'],
@@ -142,7 +143,7 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_
         pool = 2 + random.randint(0, nb_pool)
         hard_limit //= pool
         print(hard_limit, pool, conv)
-        if random.random()<0.2 or hard_limit < 4:
+        if random.random() < 0.2 or hard_limit < 4:
             break
         activation_func = cnn_activation_functions[random.randint(0, len(cnn_activation_functions) - 1)]
         dropout_rate = random.random() * cnn_dropout_limit * random.random()
@@ -167,8 +168,15 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_
         config["dense_layer_size"].append(hidden_layer_size)
         r = regularizers[random.randint(0, len(regularizers) - 1)]
         config["dense_weight_regularizers"].append((r, random.random() * 0.1))
+        if r == l1l2:
+            config["dense_weight_regularizers"].append((r, random.random() * 0.1, random.random() * 0.1))
+        else:
+            config["dense_weight_regularizers"].append((r, random.random() * 0.1))
         r = regularizers[random.randint(0, len(regularizers) - 1)]
-        config["dense_activity_regularizers"].append((r, random.random() * 0.1))
+        if r == l1l2:
+            config["dense_activity_regularizers"].append((r, random.random() * 0.1,random.random() * 0.1,))
+        else:
+            config["dense_activity_regularizers"].append((r, random.random() * 0.1))
         config["dropout"].append(dropout_rate)
         config["activation"].append(activation_func)
     config["nb_classes"] = nb_classes
