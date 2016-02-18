@@ -122,7 +122,7 @@ def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r, ac
         model.add(Dense(hidden_layer_size, init=init, W_regularizer=f_or_default(weight_r),
                         activity_regularizer=f_or_default(act_r), b_regularizer=f_or_default(b_r)))
 
-        #model.layers[-1].regularizers[-1].set_param(model.layers[-1].get_params()[0][0])
+        # model.layers[-1].regularizers[-1].set_param(model.layers[-1].get_params()[0][0])
         model.add(Activation(activation_function))
         model.add(Dropout(dropout_rate))
 
@@ -131,13 +131,15 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_
                       nb_pool=2,
                       nb_conv=3, nb_classes=47, lr_limit=2.5, momentum_limit=0.9, cnn_dropout_limit=0.5,
                       dropout_limit=0.5, hidden_layer_limit=1024,
-                      inits=['zero', 'normal', 'uniform', 'glorot_uniform', 'glorot_normal', 'he_normal', 'he_uniform'],
-                      border_modes=['same', 'valid'], optimizers=[],  # 'adadelta'],
+                      inits=['zero', 'glorot_uniform', 'normal', 'glorot_uniform', 'uniform', 'glorot_uniform',
+                             'he_uniform', 'he_normal', 'glorot_normal', 'glorot_uniform', 'he_normal',
+                             'glorot_uniform', 'he_uniform','glorot_uniform','glorot_uniform','glorot_uniform',],
+                      border_modes=['same', 'valid', 'same', 'same'], optimizers=[],  # 'adadelta'],
                       loss_functions=['categorical_crossentropy'],
-                      cnn_activation_functions=['relu', 'tanh', 'hard_sigmoid', 'linear'],
-                      dense_activation_functions=['relu', 'hard_sigmoid', 'linear'],
-                      regularizers=[l1, l2, l1l2, ],
-                      activity_regularizers=[activity_l1, activity_l2, activity_l1l2],
+                      cnn_activation_functions=['relu', 'tanh', 'relu','relu','hard_sigmoid','relu', 'linear','relu',],
+                      dense_activation_functions=['relu', 'relu','relu','hard_sigmoid', 'relu','linear','relu','relu',],
+                      regularizers=[l1, l2, l2, l2, l1l2, l2, l2, l2],
+                      activity_regularizers=[activity_l1, activity_l2, activity_l1l2, activity_l2, activity_l2,],
                       final_activation='softmax',
                       ):
     border_mode = border_modes[random.randint(0, len(border_modes) - 1)]
