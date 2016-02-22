@@ -8,7 +8,7 @@ class Pack:
 
 
 trainer = hyperparameter_search.init_trainer()
-trainer.training_parameters.nb_epoch=500
+"""trainer.training_parameters.nb_epoch=500
 dict_config = {'bias_regularizers': [None, None, None, None], 'nb_pool': [3], 'nb_conv': [5, 3],
                'sgd_momentum': 0.04509058440772208, 'img_cols': 28, 'sgd_decay': 3.970867037476346e-06,
                'dense_weight_regularizers': [None, None, None, ('l2', 0.00590578693693914)], 'border_mode': 'valid',
@@ -17,11 +17,11 @@ dict_config = {'bias_regularizers': [None, None, None, None], 'nb_pool': [3], 'n
                'dense_inits': ['uniform', 'glorot_uniform', 'uniform', 'glorot_uniform'], 'sgd_nesterov': False,
                'nb_filter': [32, 47], 'activation': ['linear', 'relu', 'linear', 'relu', 'relu', 'relu', 'softmax'],
                'nb_repeat': [2, 2, 2, 2, 1],
-               'dropout': [0.05581567092442845, 0.146871561047429298, 0.075979640541265788, 0.4836863105510306,
+               'dropout': [0.05581567092442845, 0.246871561047429298, 0.0575979640541265788, 0.4836863105510306,
                            0.4954334377523167], 'dense_activity_regularizers': [None, None, None, None],
                'img_rows': 28}
 hyperparameter_search.test_promising(trainer, dict_config, "48151")
-trainer.training_parameters.nb_epoch=50
+trainer.training_parameters.nb_epoch=50"""
 raw_input("tests ended, presse enter to continue")
 for i in range(2000):
     print(i)

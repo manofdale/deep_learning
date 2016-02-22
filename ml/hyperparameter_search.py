@@ -94,8 +94,8 @@ class MyModelCheckpoint(ModelCheckpoint):
             if self.patience_ctr > self.patience:
                 lr = self.model.optimizer.get_config()["lr"]
                 if lr < 0.001:
-                    lr=random.random()*0.2
-                    print("assigning new random learning rate:%f"%lr)
+                    lr = random.random() * 0.2
+                    print("assigning new random learning rate:%f" % lr)
                     K.set_value(self.model.optimizer.lr, lr)
                 else:
                     K.set_value(self.model.optimizer.lr, lr / self.lr_divide)
@@ -181,11 +181,11 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_
         config["dropout"].append(dropout_rate)
         config["activation"].append(activation_func)
     for i in range(dense_limit):
-        if random.randint(0, 10) < 1:  # prevent from getting too big
+        if random.randint(0, 15) < 1:  # prevent from getting too big
             break
         hidden_layer_size = random.randint(hard_limit ** 2, hidden_layer_limit)
         dropout_rate = random.random() * dropout_limit
-        layer_limit = random.randint(2, 4)
+        layer_limit = random.randint(2, 6)
         r = 1 + random.randint(0, layer_limit - 1)
         init = inits[random.randint(0, len(inits) - 1)]
         config["dense_inits"].append(init)
