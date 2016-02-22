@@ -1365,3 +1365,11 @@ def convert_xs(xs, converter=lambda x: float(x[:-1])):
 
 def expand_args(x, *xs):
     return tuple([x]) + xs
+
+
+def f_or_default(arg, default=None, func=lambda x: x[0](*x[1:])):
+    """if given argument is None return the default value, else return func(arg)"""
+    if arg is None:
+        return default
+    else:
+        return func(arg)
