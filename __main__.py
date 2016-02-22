@@ -8,7 +8,7 @@ class Pack:
 
 
 trainer = hyperparameter_search.init_trainer()
-
+trainer.training_parameters.nb_epoch=500
 dict_config = {'bias_regularizers': [None, None, None, None], 'nb_pool': [3], 'nb_conv': [5, 3],
                'sgd_momentum': 0.04509058440772208, 'img_cols': 28, 'sgd_decay': 3.970867037476346e-06,
                'dense_weight_regularizers': [None, None, None, ('l2', 0.00590578693693914)], 'border_mode': 'valid',
@@ -21,6 +21,7 @@ dict_config = {'bias_regularizers': [None, None, None, None], 'nb_pool': [3], 'n
                            0.47954334377523167], 'dense_activity_regularizers': [None, None, None, None],
                'img_rows': 28}
 hyperparameter_search.test_promising(trainer, dict_config, "48151")
+trainer.training_parameters.nb_epoch=50
 raw_input("tests ended, presse enter to continue")
 for i in range(2000):
     print(i)

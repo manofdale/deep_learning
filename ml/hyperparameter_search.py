@@ -363,7 +363,7 @@ def test_promising(my_trainer, dict_config, checkpoint_name):
     best_of_the_bests = init_best()
     save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_test_%s.hdf5" % checkpoint_name,
                                   best_of_the_bests=best_of_the_bests, verbose=1,
-                                  save_best_only=True, patience=1, lr_divide=dict_config["sgd_lr_divide"])
+                                  save_best_only=True, patience=6, lr_divide=dict_config["sgd_lr_divide"])
     my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
                                     reshape_output=cnn_model.reshape_str_output)
     score = my_trainer.train(callbacks=[save_best])
