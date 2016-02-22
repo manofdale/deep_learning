@@ -69,7 +69,7 @@ def score_training_history(log_history, patience=5):  # patience is the number o
 
 class MyModelCheckpoint(ModelCheckpoint):
     def __init__(self, filepath, best_of_the_bests=np.inf, monitor='val_acc', verbose=0,
-                 save_best_only=False, mode='auto', lr_divide=3.0, patience=3.0):
+                 save_best_only=False, mode='auto', lr_divide=3.0, drop_divide=0.975, patience=3.0):
         super(MyModelCheckpoint, self).__init__(filepath, monitor=monitor, verbose=verbose,
                                                 save_best_only=save_best_only, mode=mode)
         self.old_best = self.best
@@ -77,6 +77,7 @@ class MyModelCheckpoint(ModelCheckpoint):
         self.best_of_the_bests = best_of_the_bests
         self.patience_ctr = 0
         self.patience = patience
+        self.drop_divide = drop_divide
         self.log_history = []
 
     def on_epoch_end(self, epoch, logs={}):
@@ -93,7 +94,9 @@ class MyModelCheckpoint(ModelCheckpoint):
             if self.patience_ctr > self.patience:
                 lr = self.model.optimizer.get_config()["lr"]
                 if lr < 0.001:
-                    K.set_value(self.model.optimizer.lr, random.random())
+                    lr=random.random()*0.2
+                    print("assigning new random learning rate:%f"%lr)
+                    K.set_value(self.model.optimizer.lr, lr)
                 else:
                     K.set_value(self.model.optimizer.lr, lr / self.lr_divide)
                 if self.verbose > 0:
