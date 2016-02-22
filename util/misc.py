@@ -36,7 +36,7 @@ def gradient_1d(function_points):
     for i, _ in enumerate(function_points):
         left = function_points[max(i - 1, 0)]
         right = function_points[min(i + 1, len(function_points) - 1)]
-        gradient.append((right-left) / 2.0)  # + (right - left) / 2.0) / 3.0)
+        gradient.append((right - left) / 2.0)  # + (right - left) / 2.0) / 3.0)
     return gradient
 
 
@@ -1361,3 +1361,7 @@ def get_file_name(input_file, no_extension=True):
 
 def convert_xs(xs, converter=lambda x: float(x[:-1])):
     return [converter(x) for x in xs]
+
+
+def expand_args(x, *xs):
+    return tuple([x]) + xs

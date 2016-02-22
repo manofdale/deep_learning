@@ -15,6 +15,7 @@ import pickle
 
 from ml import cnn_model
 from ml.trainer import Trainer
+from util import misc
 
 import random
 
@@ -133,13 +134,16 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_
                       dropout_limit=0.5, hidden_layer_limit=1024,
                       inits=['zero', 'glorot_uniform', 'normal', 'glorot_uniform', 'uniform', 'glorot_uniform',
                              'he_uniform', 'he_normal', 'glorot_normal', 'glorot_uniform', 'he_normal',
-                             'glorot_uniform', 'he_uniform','glorot_uniform','glorot_uniform','glorot_uniform',],
+                             'glorot_uniform', 'he_uniform', 'glorot_uniform', 'glorot_uniform', 'glorot_uniform', ],
                       border_modes=['same', 'valid', 'same', 'same'], optimizers=[],  # 'adadelta'],
                       loss_functions=['categorical_crossentropy'],
-                      cnn_activation_functions=['relu', 'tanh', 'relu','relu','hard_sigmoid','relu', 'linear','relu',],
-                      dense_activation_functions=['relu', 'relu','relu','hard_sigmoid', 'relu','linear','relu','relu',],
-                      regularizers=[l1, l2, l2, l2, l1l2, l2, l2, l2],
-                      activity_regularizers=[activity_l1, activity_l2, activity_l1l2, activity_l2, activity_l2,],
+                      cnn_activation_functions=['relu', 'tanh', 'relu', 'relu', 'hard_sigmoid', 'relu', 'linear',
+                                                'relu', ],
+                      dense_activation_functions=['relu', 'relu', 'relu', 'hard_sigmoid', 'relu', 'linear', 'relu',
+                                                  'relu', ],
+                      regularizers=['l1', 'l2', 'l2', 'l2', 'l1l2', 'l2', 'l2', 'l2'],
+                      activity_regularizers=['activity_l1', 'activity_l2', 'activity_l1l2', 'activity_l2',
+                                             'activity_l2', ],
                       final_activation='softmax',
                       ):
     border_mode = border_modes[random.randint(0, len(border_modes) - 1)]
@@ -235,6 +239,24 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_
     return config
 
 
+def str_to_regularizer(r):
+    if r is None:
+        return None
+    if r[0] == 'l1':
+        return misc.expand_args(l1, *r[1:])
+    if r[0] == 'l2':
+        return misc.expand_args(l2, *r[1:])
+    if r[0] == 'l1l2':
+        return misc.expand_args(l1l2, *r[1:])
+    if r[0] == 'activity_l1':
+        return misc.expand_args(activity_l1, *r[1:])
+    if r[0] == 'activity_l2':
+        return misc.expand_args(activity_l2, *r[1:])
+    if r[0] == 'activity_l1l2':
+        return misc.expand_args(activity_l1l2, *r[1:])
+    return None
+
+
 def construct_cnn(dict_config):
     """"compile cnn from config dictionary
     :param dict_config: contains the cnn hyperparameters
@@ -267,9 +289,9 @@ def construct_cnn(dict_config):
         add_convolution(model, nb_filters[i], nb_convs[i], nb_pools[i - 1], dropout_rates[i - 1], activation_funcs[i],
                         nb_repeats[i - 1])
     model.add(Flatten())
-    act_rs = dict_config["dense_activity_regularizers"]
-    weight_rs = dict_config["dense_weight_regularizers"]
-    b_rs = dict_config["bias_regularizers"]
+    act_rs = misc.convert_xs(dict_config["dense_activity_regularizers"], str_to_regularizer)
+    weight_rs = misc.convert_xs(dict_config["dense_weight_regularizers"], str_to_regularizer)
+    b_rs = misc.convert_xs(dict_config["bias_regularizers"], str_to_regularizer)
     inits = dict_config["dense_inits"]
     for j, k in enumerate(dense_layer_sizes):
         i += 1
@@ -325,10 +347,28 @@ def init_best():
                     if len(i.strip()) > 0:
                         best_of_the_bests = float(i)
                 except ValueError:
-                    print("warning: the file data/variable/best has nan entries")
+                    print("warning: the file data/variables/best has nan entries")
     if best_of_the_bests is None:
         best_of_the_bests = -np.inf
     return best_of_the_bests
+
+
+def test_promising(my_trainer, dict_config, checkpoint_name):
+    model = construct_cnn(dict_config)
+    if model is None:
+        print("something is wrong with the config")
+        return
+    my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
+                                    reshape_output=cnn_model.reshape_str_output)
+    best_of_the_bests = init_best()
+    save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_test_%s.hdf5" % checkpoint_name,
+                                  best_of_the_bests=best_of_the_bests, verbose=1,
+                                  save_best_only=True, patience=1, lr_divide=dict_config["sgd_lr_divide"])
+    my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
+                                    reshape_output=cnn_model.reshape_str_output)
+    score = my_trainer.train(callbacks=[save_best])
+    print("end of training %s" % checkpoint_name)
+    print(score)
 
 
 def random_search(meta, my_trainer):
