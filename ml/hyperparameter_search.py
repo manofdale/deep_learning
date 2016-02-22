@@ -192,7 +192,7 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_
         activation_func = dense_activation_functions[random.randint(0, len(dense_activation_functions) - 1)]
         config["nb_repeat"].append(r)
         config["dense_layer_size"].append(hidden_layer_size)
-        if random.random() < 0.1:
+        if random.random() < 0.2:
             reg = regularizers[random.randint(0, len(regularizers) - 1)]
             if reg == l1l2:
                 config["dense_weight_regularizers"].append((reg, random.random() * 0.1, random.random() * 0.1))
@@ -200,7 +200,7 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_
                 config["dense_weight_regularizers"].append((reg, random.random() * 0.1))
         else:
             config["dense_weight_regularizers"].append(None)
-        if random.random() < 0.1:
+        if random.random() < 0.2:
             reg = regularizers[random.randint(0, len(regularizers) - 1)]
             if reg == l1l2:
                 config["bias_regularizers"].append((reg, random.random() * 0.1, random.random() * 0.1))
@@ -208,7 +208,7 @@ def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_
                 config["bias_regularizers"].append((reg, random.random() * 0.1))
         else:
             config["bias_regularizers"].append(None)
-        if random.random() < 0.1:
+        if random.random() < 0.2:
             reg = activity_regularizers[random.randint(0, len(activity_regularizers) - 1)]
             if reg == activity_l1l2:
                 config["dense_activity_regularizers"].append((reg, random.random() * 0.1, random.random() * 0.1,))
@@ -379,7 +379,7 @@ def random_search(meta, my_trainer):
 
     for i in range(0, 50):
         print("*********** batch:%d **********" % i)
-        training_patience = 6
+        training_patience = 4
         model = None
         meta.configs.append([])
         ix = len(meta.configs) - 1

@@ -21,8 +21,8 @@ dict_config = {'bias_regularizers': [None, None, None, None], 'nb_pool': [3], 'n
                            0.4954334377523167], 'dense_activity_regularizers': [None, None, None, None],
                'img_rows': 28}
 hyperparameter_search.test_promising(trainer, dict_config, "48151")
-trainer.training_parameters.nb_epoch=50"""
-raw_input("tests ended, presse enter to continue")
+trainer.training_parameters.nb_epoch=50
+raw_input("tests ended, presse enter to continue")"""
 for i in range(2000):
     print(i)
     meta = Pack()
