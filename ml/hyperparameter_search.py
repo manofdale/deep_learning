@@ -148,7 +148,7 @@ def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r, ac
 
 def random_cnn_config(img_rows=28, img_cols=28, dense_limit=4, cnn_limit=6, nb_filters=42,
                       nb_pool=2,
-                      nb_conv=3, nb_classes=47, lr_limit=2.5, momentum_limit=0.9, cnn_dropout_limit=0.5,
+                      nb_conv=3, nb_classes=47, lr_limit=1.5, momentum_limit=0.9, cnn_dropout_limit=0.5,
                       dropout_limit=0.5, hidden_layer_limit=1024,
                       inits=['zero', 'glorot_uniform', 'normal', 'glorot_uniform', 'uniform', 'glorot_uniform',
                              'he_uniform', 'he_normal', 'glorot_normal', 'glorot_uniform', 'he_normal',
@@ -276,14 +276,14 @@ def random_add_dense_to_config(config, dense_limit, hard_limit, hidden_layer_lim
             break
         hidden_layer_size = random.randint(hard_limit ** 2, hidden_layer_limit)
         dropout_rate = random.random() * dropout_limit
-        layer_limit = random.randint(2, 6)
+        layer_limit = random.randint(2, 4)
         r = 1 + random.randint(0, layer_limit - 1)
         init = inits[random.randint(0, len(inits) - 1)]
         config["dense_inits"].append(init)
         activation_func = dense_activation_functions[random.randint(0, len(dense_activation_functions) - 1)]
         config["nb_repeat"].append(r)
         config["dense_layer_size"].append(hidden_layer_size)
-        if random.random() < 0.2:
+        if random.random() < 0.1:
             reg = regularizers[random.randint(0, len(regularizers) - 1)]
             if reg == l1l2:
                 config["dense_weight_regularizers"].append((reg, random.random() * 0.1, random.random() * 0.1))
@@ -291,7 +291,7 @@ def random_add_dense_to_config(config, dense_limit, hard_limit, hidden_layer_lim
                 config["dense_weight_regularizers"].append((reg, random.random() * 0.1))
         else:
             config["dense_weight_regularizers"].append(None)
-        if random.random() < 0.2:
+        if random.random() < 0.1:
             reg = regularizers[random.randint(0, len(regularizers) - 1)]
             if reg == l1l2:
                 config["bias_regularizers"].append((reg, random.random() * 0.1, random.random() * 0.1))
@@ -299,7 +299,7 @@ def random_add_dense_to_config(config, dense_limit, hard_limit, hidden_layer_lim
                 config["bias_regularizers"].append((reg, random.random() * 0.1))
         else:
             config["bias_regularizers"].append(None)
-        if random.random() < 0.2:
+        if random.random() < 0.1:
             reg = activity_regularizers[random.randint(0, len(activity_regularizers) - 1)]
             if reg == activity_l1l2:
                 config["dense_activity_regularizers"].append((reg, random.random() * 0.1, random.random() * 0.1,))
