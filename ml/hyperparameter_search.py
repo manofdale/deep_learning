@@ -146,7 +146,7 @@ def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r, ac
         model.add(Dropout(dropout_rate))
 
 
-def random_cnn_config(img_rows=28, img_cols=28, dense_limit=10, cnn_limit=6, nb_filters=42,
+def random_cnn_config(img_rows=28, img_cols=28, dense_limit=4, cnn_limit=6, nb_filters=42,
                       nb_pool=2,
                       nb_conv=3, nb_classes=47, lr_limit=2.5, momentum_limit=0.9, cnn_dropout_limit=0.5,
                       dropout_limit=0.5, hidden_layer_limit=1024,
