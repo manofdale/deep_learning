@@ -442,7 +442,7 @@ def search_near_promising(meta, my_trainer, config, checkpoint_name, n_itr=50):
         itr += 1
 
         dict_config = copy.deepcopy(config)  # initial config
-        random_add_dense_to_config(dict_config, dense_limit, hard_limit, hidden_layer_limit, inits,
+        random_add_dense_to_config(dict_config, 1+itr//10, hard_limit, hidden_layer_limit, inits,
                                    dense_activation_functions, regularizers, dropout_limit, activity_regularizers)
         meta.configs.append(dict_config)
         model = construct_cnn(dict_config)
