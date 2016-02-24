@@ -222,6 +222,48 @@ def random_add_cnn_to_config(config, cnn_limit, cnn_layer_n, nb_conv, nb_filters
     return hard_limit
 
 
+def random_add_dense_to_config(config, dense_limit, hard_limit, hidden_layer_limit, inits, dense_activation_functions,
+                               regularizers, dropout_limit, activity_regularizers):
+    for i in range(dense_limit):
+        if random.randint(0, 20) < 3:  # prevent from getting too big
+            break
+        hidden_layer_size = random.randint(hard_limit ** 2, hidden_layer_limit)
+        dropout_rate = random.random() * dropout_limit
+        layer_limit = random.randint(2, 4)
+        r = 1 + random.randint(0, layer_limit - 1)
+        init = inits[random.randint(0, len(inits) - 1)]
+        config["dense_inits"].append(init)
+        activation_func = dense_activation_functions[random.randint(0, len(dense_activation_functions) - 1)]
+        config["nb_repeat"].append(r)
+        config["dense_layer_size"].append(hidden_layer_size)
+        if random.random() < 0.1:
+            reg = regularizers[random.randint(0, len(regularizers) - 1)]
+            if reg == l1l2:
+                config["dense_weight_regularizers"].append((reg, random.random() * 0.1, random.random() * 0.1))
+            else:
+                config["dense_weight_regularizers"].append((reg, random.random() * 0.1))
+        else:
+            config["dense_weight_regularizers"].append(None)
+        if random.random() < 0.1:
+            reg = regularizers[random.randint(0, len(regularizers) - 1)]
+            if reg == l1l2:
+                config["bias_regularizers"].append((reg, random.random() * 0.1, random.random() * 0.1))
+            else:
+                config["bias_regularizers"].append((reg, random.random() * 0.1))
+        else:
+            config["bias_regularizers"].append(None)
+        if random.random() < 0.1:
+            reg = activity_regularizers[random.randint(0, len(activity_regularizers) - 1)]
+            if reg == activity_l1l2:
+                config["dense_activity_regularizers"].append((reg, random.random() * 0.1, random.random() * 0.1,))
+            else:
+                config["dense_activity_regularizers"].append((reg, random.random() * 0.1))
+        else:
+            config["dense_activity_regularizers"].append(None)
+        config["dropout"].append(dropout_rate)
+        config["activation"].append(activation_func)
+
+
 def finalize_config(config, nb_classes, final_activation, loss_functions, lr_limit, momentum_limit):
     config["nb_classes"] = nb_classes
     config["final_activation"] = final_activation
@@ -267,48 +309,6 @@ def str_to_regularizer(r):
     if r[0] == 'activity_l1l2':
         return misc.expand_args(activity_l1l2, *r[1:])
     return None
-
-
-def random_add_dense_to_config(config, dense_limit, hard_limit, hidden_layer_limit, inits, dense_activation_functions,
-                               regularizers, dropout_limit, activity_regularizers):
-    for i in range(dense_limit):
-        if random.randint(0, 20) < 3:  # prevent from getting too big
-            break
-        hidden_layer_size = random.randint(hard_limit ** 2, hidden_layer_limit)
-        dropout_rate = random.random() * dropout_limit
-        layer_limit = random.randint(2, 4)
-        r = 1 + random.randint(0, layer_limit - 1)
-        init = inits[random.randint(0, len(inits) - 1)]
-        config["dense_inits"].append(init)
-        activation_func = dense_activation_functions[random.randint(0, len(dense_activation_functions) - 1)]
-        config["nb_repeat"].append(r)
-        config["dense_layer_size"].append(hidden_layer_size)
-        if random.random() < 0.1:
-            reg = regularizers[random.randint(0, len(regularizers) - 1)]
-            if reg == l1l2:
-                config["dense_weight_regularizers"].append((reg, random.random() * 0.1, random.random() * 0.1))
-            else:
-                config["dense_weight_regularizers"].append((reg, random.random() * 0.1))
-        else:
-            config["dense_weight_regularizers"].append(None)
-        if random.random() < 0.1:
-            reg = regularizers[random.randint(0, len(regularizers) - 1)]
-            if reg == l1l2:
-                config["bias_regularizers"].append((reg, random.random() * 0.1, random.random() * 0.1))
-            else:
-                config["bias_regularizers"].append((reg, random.random() * 0.1))
-        else:
-            config["bias_regularizers"].append(None)
-        if random.random() < 0.1:
-            reg = activity_regularizers[random.randint(0, len(activity_regularizers) - 1)]
-            if reg == activity_l1l2:
-                config["dense_activity_regularizers"].append((reg, random.random() * 0.1, random.random() * 0.1,))
-            else:
-                config["dense_activity_regularizers"].append((reg, random.random() * 0.1))
-        else:
-            config["dense_activity_regularizers"].append(None)
-        config["dropout"].append(dropout_rate)
-        config["activation"].append(activation_func)
 
 
 def construct_cnn(dict_config, old_model=None, k_lim=0):
@@ -401,7 +401,8 @@ def init_trainer():
         horizontal_flip=False,  # don't horizontally flip images
         vertical_flip=False)  # don't vertically flip images
     my_trainer = Trainer(train_csv=train_csv, test_csv=None,
-                         converters=None, nan_handlers=None, empty_str_handlers=None, training_parameters=tp,
+                         converters=None, nan_handlers=None,
+                         empty_str_handlers=None, training_parameters=tp,
                          preprocessor=prep)
     return my_trainer
 
@@ -422,22 +423,43 @@ def init_best():
     return best_of_the_bests
 
 
-def test_promising(my_trainer, dict_config, checkpoint_name):
-    model = construct_cnn(dict_config)
-    if model is None:
-        print("something is wrong with the config")
-        return
-    my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
-                                    reshape_output=cnn_model.reshape_str_output)
-    best_of_the_bests = init_best()
-    save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_test_%s.hdf5" % checkpoint_name,
-                                  best_of_the_bests=best_of_the_bests, verbose=1,
-                                  save_best_only=True, patience=6, lr_divide=dict_config["sgd_lr_divide"])
-    my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
-                                    reshape_output=cnn_model.reshape_str_output)
-    score = my_trainer.train(callbacks=[save_best])
-    print("end of training %s" % checkpoint_name)
-    print(score)
+def search_near_promising(my_trainer, config, checkpoint_name, n_itr=50):
+    itr = 0
+    import copy
+    dense_limit = 3
+    hard_limit = 7
+    hidden_layer_limit = 1024
+    inits = ['zero', 'glorot_uniform', 'normal', 'glorot_uniform', 'uniform', 'glorot_uniform',
+             'he_uniform', 'he_normal', 'glorot_normal', 'glorot_uniform', 'he_normal',
+             'glorot_uniform', 'he_uniform', 'glorot_uniform', 'glorot_uniform', 'glorot_uniform', ]
+    dense_activation_functions = ['relu', 'relu', 'relu', 'hard_sigmoid', 'relu', 'linear', 'relu', 'relu', ]
+    regularizers = ['l1', 'l2', 'l2', 'l2', 'l1l2', 'l2', 'l2', 'l2']
+    dropout_limit = 0.5
+    activity_regularizers = ['activity_l1', 'activity_l2', 'activity_l1l2', 'activity_l2',
+                             'activity_l2', ]
+
+    while itr < n_itr:
+        itr += 1
+        dict_config = copy.deepcopy(config)  # initial config
+        random_add_dense_to_config(dict_config, dense_limit, hard_limit, hidden_layer_limit, inits,
+                                   dense_activation_functions, regularizers, dropout_limit, activity_regularizers)
+        model = construct_cnn(dict_config)
+        test_patience = 10
+        if model is None:
+            print("something is wrong with the config")
+            return
+        my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
+                                        reshape_output=cnn_model.reshape_str_output)
+        best_of_the_bests = init_best()
+        save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_test_%s.hdf5" % checkpoint_name,
+                                      best_of_the_bests=best_of_the_bests, verbose=1,
+                                      save_best_only=True, patience=6, lr_divide=dict_config["sgd_lr_divide"])
+        early_stop = EarlyStopping(monitor='val_acc', patience=test_patience, verbose=0, mode='auto')
+        my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
+                                        reshape_output=cnn_model.reshape_str_output)
+        score = my_trainer.train(callbacks=[save_best, early_stop])
+        print("end of training %s" % checkpoint_name)
+        print(score)
 
 
 def random_search(meta, my_trainer):
