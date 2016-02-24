@@ -20,7 +20,12 @@ dict_config = {'bias_regularizers': [None, None, None, None], 'nb_pool': [3], 'n
                'dropout': [0.05581567092442845, 0.246871561047429298, 0.0575979640541265788, 0.4836863105510306,
                            0.04954334377523167], 'dense_activity_regularizers': [None, None, None, None],
                'img_rows': 28}
-hyperparameter_search.search_near_promising(trainer, dict_config, "48151")
+meta = Pack()
+hyperparameter_search.search_near_promising(meta, trainer, dict_config, "48151")
+with open("data/dataset/meta_near_48151", "a") as meta_file:
+        for s, c in zip(meta.scores, meta.configs):
+            meta_file.write(str(s) + ":")
+            meta_file.write(str(c) + "\n")
 trainer.training_parameters.nb_epoch=50
 raw_input("tests ended, presse enter to continue")
 for i in range(2000):

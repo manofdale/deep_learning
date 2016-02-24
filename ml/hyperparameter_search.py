@@ -423,7 +423,7 @@ def init_best():
     return best_of_the_bests
 
 
-def search_near_promising(my_trainer, config, checkpoint_name, n_itr=50):
+def search_near_promising(meta, my_trainer, config, checkpoint_name, n_itr=50):
     itr = 0
     import copy
     dense_limit = 3
@@ -440,10 +440,13 @@ def search_near_promising(my_trainer, config, checkpoint_name, n_itr=50):
 
     while itr < n_itr:
         itr += 1
+
         dict_config = copy.deepcopy(config)  # initial config
         random_add_dense_to_config(dict_config, dense_limit, hard_limit, hidden_layer_limit, inits,
                                    dense_activation_functions, regularizers, dropout_limit, activity_regularizers)
+        meta.configs.append(dict_config)
         model = construct_cnn(dict_config)
+
         test_patience = 10
         if model is None:
             print("something is wrong with the config")
@@ -451,7 +454,7 @@ def search_near_promising(my_trainer, config, checkpoint_name, n_itr=50):
         my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
                                         reshape_output=cnn_model.reshape_str_output)
         best_of_the_bests = init_best()
-        save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_test_%s.hdf5" % checkpoint_name,
+        save_best = MyModelCheckpoint(filepath="data/models/promising_cnn_config_test_%s_%d.hdf5" % (checkpoint_name,i),
                                       best_of_the_bests=best_of_the_bests, verbose=1,
                                       save_best_only=True, patience=6, lr_divide=dict_config["sgd_lr_divide"])
         early_stop = EarlyStopping(monitor='val_acc', patience=test_patience, verbose=0, mode='auto')
@@ -460,6 +463,7 @@ def search_near_promising(my_trainer, config, checkpoint_name, n_itr=50):
         score = my_trainer.train(callbacks=[save_best, early_stop])
         print("end of training %s" % checkpoint_name)
         print(score)
+        meta.scores.append(score_training_history(save_best.log_history, patience=test_patience))
 
 
 def random_search(meta, my_trainer):
