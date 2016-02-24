@@ -454,7 +454,7 @@ def search_near_promising(meta, my_trainer, config, checkpoint_name, n_itr=50):
         my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
                                         reshape_output=cnn_model.reshape_str_output)
         best_of_the_bests = init_best()
-        save_best = MyModelCheckpoint(filepath="data/models/promising_cnn_config_test_%s_%d.hdf5" % (checkpoint_name,i),
+        save_best = MyModelCheckpoint(filepath="data/models/promising_cnn_config_test_%s_%d.hdf5" % (checkpoint_name,itr),
                                       best_of_the_bests=best_of_the_bests, verbose=1,
                                       save_best_only=True, patience=6, lr_divide=dict_config["sgd_lr_divide"])
         early_stop = EarlyStopping(monitor='val_acc', patience=test_patience, verbose=0, mode='auto')
