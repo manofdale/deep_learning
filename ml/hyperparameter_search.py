@@ -238,7 +238,7 @@ def random_add_dense_to_config(config, dense_limit, hard_limit, hidden_layer_lim
         config["dense_layer_size"].append(hidden_layer_size)
         if random.random() < 0.1:
             reg = regularizers[random.randint(0, len(regularizers) - 1)]
-            if reg == l1l2:
+            if reg == 'l1l2':
                 config["dense_weight_regularizers"].append((reg, random.random() * 0.1, random.random() * 0.1))
             else:
                 config["dense_weight_regularizers"].append((reg, random.random() * 0.1))
@@ -246,7 +246,7 @@ def random_add_dense_to_config(config, dense_limit, hard_limit, hidden_layer_lim
             config["dense_weight_regularizers"].append(None)
         if random.random() < 0.1:
             reg = regularizers[random.randint(0, len(regularizers) - 1)]
-            if reg == l1l2:
+            if reg == 'l1l2':
                 config["bias_regularizers"].append((reg, random.random() * 0.1, random.random() * 0.1))
             else:
                 config["bias_regularizers"].append((reg, random.random() * 0.1))
