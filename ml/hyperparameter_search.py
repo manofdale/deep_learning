@@ -344,8 +344,13 @@ def construct_cnn(dict_config, old_model=None, k_lim=0):
     dense_layer_sizes = dict_config["dense_layer_size"]
     inits = dict_config["dense_inits"]
     i = 0
-    model.add(Convolution2D(nb_filters[i], nb_convs[i], nb_convs[i],
+    if old_model is not None:
+        model.add(Convolution2D(nb_filters[i], nb_convs[i], nb_convs[i],
                             border_mode=border_mode, weights=old_model.layers[0].get_weights(),
+                            input_shape=(1, img_rows, img_cols)))
+    else:
+         model.add(Convolution2D(nb_filters[i], nb_convs[i], nb_convs[i],
+                            border_mode=border_mode,
                             input_shape=(1, img_rows, img_cols)))
     layer_k = 1
     print(1, img_rows, img_cols)
