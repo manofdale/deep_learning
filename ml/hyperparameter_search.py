@@ -345,7 +345,7 @@ def construct_cnn(dict_config, old_model=None, k_lim=0):
     inits = dict_config["dense_inits"]
     i = 0
     model.add(Convolution2D(nb_filters[i], nb_convs[i], nb_convs[i],
-                            border_mode=border_mode,
+                            border_mode=border_mode, weights=old_model.layers[0].get_weights(),
                             input_shape=(1, img_rows, img_cols)))
     layer_k = 1
     print(1, img_rows, img_cols)
@@ -354,7 +354,7 @@ def construct_cnn(dict_config, old_model=None, k_lim=0):
         i += 1
         add_convolution(model, nb_filters[i], nb_convs[i], nb_pools[i - 1], dropout_rates[i - 1], activation_funcs[i],
                         nb_repeats[i - 1], old_model=old_model, k=layer_k, k_lim=k_lim)
-        layer_k += nb_repeats[i - 1]
+        layer_k += nb_repeats[i - 1]+1
     model.add(Flatten())
     act_rs = misc.convert_xs(dict_config["dense_activity_regularizers"], str_to_regularizer)
     weight_rs = misc.convert_xs(dict_config["dense_weight_regularizers"], str_to_regularizer)
