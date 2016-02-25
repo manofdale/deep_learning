@@ -27,7 +27,7 @@ with open("data/dataset/meta_near_48151_incremental", "a") as meta_file:
             meta_file.write(str(s) + ":")
             meta_file.write(str(c) + "\n")
 trainer.training_parameters.nb_epoch=50
-raw_input("tests ended, presse enter to continue")
+raw_input("tests ended, press enter to continue")
 for i in range(2000):
     print(i)
     meta = Pack()
