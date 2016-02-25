@@ -1373,3 +1373,8 @@ def f_or_default(arg, default=None, func=lambda x: x[0](*x[1:])):
         return default
     else:
         return func(arg)
+
+
+def mutate_list(random_vals, low=0, high=0.5):
+    mutate_index = random.randint(0, len(random_vals) - 1)
+    random_vals[mutate_index] = np.random.uniform(low=low, high=high)

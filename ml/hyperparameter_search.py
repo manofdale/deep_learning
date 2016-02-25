@@ -436,7 +436,7 @@ def find_number_of_layers(dict_config):
     return k_lim
 
 
-def search_near_promising(meta, my_trainer, config, best_score, checkpoint_name, n_itr=100):
+def search_around_promising(meta, my_trainer, config, best_score, checkpoint_name, n_itr=100):
     itr = 0
     import copy
     dense_limit = 3
@@ -458,13 +458,22 @@ def search_near_promising(meta, my_trainer, config, best_score, checkpoint_name,
     while itr < n_itr:
         itr += 1
         old_config = copy.deepcopy(dict_config)
+
         if old_model is None:
             meta.configs.append(dict_config)
             model = construct_cnn(dict_config)
         else:
-            random_add_dense_to_config(dict_config, 1, hard_limit, hidden_layer_limit, inits,
-                                       dense_activation_functions, regularizers, dropout_limit, activity_regularizers)
-            k_lim = find_number_of_layers(old_config)
+            if random.random() < 0.5:  # mutate
+                dropouts = dict_config["dropout"]
+                dict_config["dropout"] = misc.mutate_list(dropouts)
+            else:
+                k_lim = find_number_of_layers(old_config)
+                if random.random() < 0.8:  # increase depth
+                    random_add_dense_to_config(dict_config, 1, hard_limit, hidden_layer_limit, inits,
+                                               dense_activation_functions, regularizers, dropout_limit,
+                                               activity_regularizers)
+                else:  # decrease depth
+                    k_lim -= 1;
             construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)
         if model is None:
             print("something is wrong with the config")

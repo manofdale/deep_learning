@@ -21,7 +21,7 @@ dict_config = {'bias_regularizers': [None, None, None, None], 'nb_pool': [3], 'n
                            0.04954334377523167], 'dense_activity_regularizers': [None, None, None, None],
                'img_rows': 28,'final_activation':'softmax'}
 meta = Pack()
-hyperparameter_search.search_near_promising(meta, trainer, dict_config, 0.4, "48151")
+hyperparameter_search.search_around_promising(meta, trainer, dict_config, 0.4, "48151")
 with open("data/dataset/meta_near_48151_incremental", "a") as meta_file:
         for s, c in zip(meta.scores, meta.configs):
             meta_file.write(str(s) + ":")
