@@ -344,11 +344,10 @@ def construct_cnn(dict_config, old_model=None, k_lim=0):
     dense_layer_sizes = dict_config["dense_layer_size"]
     inits = dict_config["dense_inits"]
     i = 0
-    layer_k = 0
     model.add(Convolution2D(nb_filters[i], nb_convs[i], nb_convs[i],
                             border_mode=border_mode,
                             input_shape=(1, img_rows, img_cols)))
-    layer_k += 1
+    layer_k = 1
     print(1, img_rows, img_cols)
     model.add(Activation(activation_funcs[i]))
     for j in range(len(nb_pools)):
@@ -423,7 +422,21 @@ def init_best():
     return best_of_the_bests
 
 
-def search_near_promising(meta, my_trainer, config, checkpoint_name, n_itr=50):
+def find_number_of_layers(dict_config):
+    k_lim = 1  # starts with a convolutional layer
+    nb_repeats = dict_config["nb_repeat"]
+    dense_layer_sizes = dict_config["dense_layer_size"]
+    i = 0
+    for _ in range(len(dict_config["nb_pool"])):
+        k_lim += nb_repeats[i]
+        i += 1
+    for _ in range(len(dense_layer_sizes)):
+        k_lim += nb_repeats[i]
+        i += 1
+    return k_lim
+
+
+def search_near_promising(meta, my_trainer, config, best_score, checkpoint_name, n_itr=100):
     itr = 0
     import copy
     dense_limit = 3
@@ -437,32 +450,41 @@ def search_near_promising(meta, my_trainer, config, checkpoint_name, n_itr=50):
     dropout_limit = 0.5
     activity_regularizers = ['activity_l1', 'activity_l2', 'activity_l1l2', 'activity_l2',
                              'activity_l2', ]
+    old_model = None
+    dict_config = copy.deepcopy(config)  # initial config
 
+    best_of_the_bests = best_score
+    test_patience = 10
     while itr < n_itr:
         itr += 1
-
-        dict_config = copy.deepcopy(config)  # initial config
-        random_add_dense_to_config(dict_config, 1+itr//10, hard_limit, hidden_layer_limit, inits,
-                                   dense_activation_functions, regularizers, dropout_limit, activity_regularizers)
-        meta.configs.append(dict_config)
-        model = construct_cnn(dict_config)
-
-        test_patience = 10
+        old_config = copy.deepcopy(dict_config)
+        if old_model is None:
+            meta.configs.append(dict_config)
+            model = construct_cnn(dict_config)
+        else:
+            random_add_dense_to_config(dict_config, 1, hard_limit, hidden_layer_limit, inits,
+                                       dense_activation_functions, regularizers, dropout_limit, activity_regularizers)
+            k_lim = find_number_of_layers(old_config)
+            construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)
         if model is None:
             print("something is wrong with the config")
             return
+
         my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
                                         reshape_output=cnn_model.reshape_str_output)
-        best_of_the_bests = init_best()
-        save_best = MyModelCheckpoint(filepath="data/models/promising_cnn_config_test_%s_%d.hdf5" % (checkpoint_name,itr),
-                                      best_of_the_bests=best_of_the_bests, verbose=1,
-                                      save_best_only=True, patience=6, lr_divide=dict_config["sgd_lr_divide"])
+        save_best = MyModelCheckpoint(
+            filepath="data/models/promising_cnn_config_test_%s_%d.hdf5" % (checkpoint_name, itr),
+            best_of_the_bests=best_of_the_bests, verbose=1,
+            save_best_only=True, patience=6, lr_divide=dict_config["sgd_lr_divide"])
         early_stop = EarlyStopping(monitor='val_acc', patience=test_patience, verbose=0, mode='auto')
         my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
                                         reshape_output=cnn_model.reshape_str_output)
         score = my_trainer.train(callbacks=[save_best, early_stop])
         print("end of training %s" % checkpoint_name)
         print(score)
+        old_model = model
+        if not save_best.monitor_op(save_best.best_of_the_bests, best_of_the_bests):
+            dict_config = copy.deepcopy(old_config)  # revert back one step if not the best
         meta.scores.append(score_training_history(save_best.log_history, patience=test_patience))
 
 
