@@ -353,15 +353,16 @@ def construct_cnn(dict_config, old_model=None, k_lim=0):
         model.add(Convolution2D(nb_filters[i], nb_convs[i], nb_convs[i],
                                 border_mode=border_mode,
                                 input_shape=(1, img_rows, img_cols)))
-    layer_k = 1
     print(1, img_rows, img_cols)
     model.add(Activation(activation_funcs[i]))
+    layer_k = 2
     for j in range(len(nb_pools)):
         i += 1
         add_convolution(model, nb_filters[i], nb_convs[i], nb_pools[i - 1], dropout_rates[i - 1], activation_funcs[i],
                         nb_repeats[i - 1], old_model=old_model, k=layer_k, k_lim=k_lim)
-        layer_k += nb_repeats[i - 1]
+        layer_k += nb_repeats[i - 1] * 2 + 2
     model.add(Flatten())
+    layer_k += 1
     act_rs = misc.convert_xs(dict_config["dense_activity_regularizers"], str_to_regularizer)
     weight_rs = misc.convert_xs(dict_config["dense_weight_regularizers"], str_to_regularizer)
     b_rs = misc.convert_xs(dict_config["bias_regularizers"], str_to_regularizer)
@@ -370,7 +371,7 @@ def construct_cnn(dict_config, old_model=None, k_lim=0):
         i += 1
         add_dense(model, k, activation_funcs[i], dropout_rates[i - 1], nb_repeats[i - 1], act_rs[j], weight_rs[j],
                   b_rs[j], init=inits[j], old_model=old_model, k=layer_k, k_lim=k_lim)
-        layer_k += nb_repeats[i - 1]
+        layer_k += nb_repeats[i - 1] * 3
     i += 1
     # try:
     model.add(Dense(dict_config["nb_classes"]))
@@ -448,11 +449,12 @@ def mutate_config(config):
         def replace(low=0, high=0):
             dense_activation_functions = ['relu', 'hard_sigmoid', 'relu', 'linear', 'sigmoid', 'tanh']
             return dense_activation_functions[np.random.randint(0, len(dense_activation_functions))]
+
         activations = config["activation"]
         config["activation"] = misc.mutate_list(activations, replace=replace)
     if np.random.uniform() < 0.1:
         def replace(low=0, high=0):
-            activity_regularizers = ['activity_l1', 'activity_l2', 'activity_l1l2', 'activity_l2' ]
+            activity_regularizers = ['activity_l1', 'activity_l2', 'activity_l1l2', 'activity_l2']
             reg = activity_regularizers[np.random.randint(0, len(activity_regularizers))]
             if np.random.uniform() > 0.3:
                 return None
@@ -465,8 +467,7 @@ def mutate_config(config):
         config['dense_activity_regularizers'] = misc.mutate_list(dense_activity, replace=replace)
     if np.random.uniform() < 0.1:
         def replace(low=0, high=0):
-            regularizers = ['l1', 'l2', 'l1l2', 'l2',]
-
+            regularizers = ['l1', 'l2', 'l1l2', 'l2', ]
             reg = regularizers[np.random.randint(0, len(regularizers))]
             if np.random.uniform() > 0.3:
                 return None
@@ -474,12 +475,12 @@ def mutate_config(config):
                 return reg, np.random.uniform() * 0.1, np.random.uniform() * 0.1
             else:
                 return reg, np.random.uniform() * 0.1
+
         dense_weight = config['dense_weight_regularizers']
         config['dense_weight_regularizers'] = misc.mutate_list(dense_weight, replace=replace)
     if np.random.uniform() < 0.1:
         def replace(low=0, high=0):
-            regularizers = ['l1', 'l2', 'l1l2', 'l2',]
-
+            regularizers = ['l1', 'l2', 'l1l2', 'l2', ]
             reg = regularizers[np.random.randint(0, len(regularizers))]
             if np.random.uniform() > 0.3:
                 return None
@@ -487,24 +488,28 @@ def mutate_config(config):
                 return reg, np.random.uniform() * 0.1, np.random.uniform() * 0.1
             else:
                 return reg, np.random.uniform() * 0.1
+
         dense_bias = config['bias_regularizers']
         config['bias_regularizers'] = misc.mutate_list(dense_bias, replace=replace)
-        # elif np.random.uniform()<0.1:
+        # if np.random.uniform()<0.1:
         #    nb_filters=config['nb_filter']
-        #    config['nb_filter']=misc.mutate_list(nb_filters,low=min(nb_filters)/2+5,high=max(nb_filters)*2, rand=np.random.randint)
+        #    config['nb_filter']=misc.mutate_list(nb_filters,low=min(nb_filters)/2+5,
+        #                                         high=max(nb_filters)*2, rand=np.random.randint)
 
 
 def find_number_of_layers(dict_config):
-    k_lim = 1  # starts with a convolutional layer
+    k_lim = 2  # starts with a convolutional layer + activation layer
     nb_repeats = dict_config["nb_repeat"]
     dense_layer_sizes = dict_config["dense_layer_size"]
     i = 0
     for _ in range(len(dict_config["nb_pool"])):
-        k_lim += nb_repeats[i]
+        k_lim += nb_repeats[i] * 2 + 2  # (conv+activation) * nb_repeat  + (pooling + dropout)
         i += 1
+    k_lim += 1  # flatten layer
     for _ in range(len(dense_layer_sizes)):
-        k_lim += nb_repeats[i]
+        k_lim += nb_repeats[i]*3   # dense + activation + dropout
         i += 1
+    k_lim += 2  # dense layer equaling to the number of classes + final activation layer
     return k_lim
 
 
@@ -538,7 +543,7 @@ def search_around_promising(meta, my_trainer, config, best_score, checkpoint_nam
             if np.random.uniform() < 0.5:  # mutate
                 mutate_config(dict_config)
             else:
-                k_lim = find_number_of_layers(old_config)
+                k_lim = find_number_of_layers(old_config)-2  # discard the final dense+activation layer and insert new
                 # TODO add crossover with other promising models
                 if np.random.uniform() < 0.8:  # increase depth
                     random_add_dense_to_config(dict_config, 1, hard_limit, hidden_layer_limit, inits,
@@ -563,13 +568,15 @@ def search_around_promising(meta, my_trainer, config, best_score, checkpoint_nam
         score = my_trainer.train(callbacks=[save_best, early_stop])
         print("end of training %s" % checkpoint_name)
         print(score)
-        old_model = model
+
         if not save_best.monitor_op(save_best.best_of_the_bests, best_of_the_bests):
             dict_config = copy.deepcopy(old_config)  # revert back one step if not the best
+        else:
+            old_model = model
         meta.scores.append(score_training_history(save_best.log_history, patience=test_patience))
 
 
-def random_search(meta, my_trainer):
+def random_search(meta, my_trainer, id):
     best_of_the_bests = init_best()
 
     for i in range(0, 50):
@@ -587,8 +594,8 @@ def random_search(meta, my_trainer):
         if model is None:
             print("couldn't find a valid random configuration for the given parameters")
             break
-        pickle.dump(dict_config, open("data/models/random_cnn_config_%d.p" % i, "wb"))
-        save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_%d_best.hdf5" % i,
+        pickle.dump(dict_config, open("data/models/random_cnn_config_%d_%d.p" % (i, id), "wb"))
+        save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_%d_best_%d.hdf5" % (i, id),
                                       best_of_the_bests=best_of_the_bests, verbose=1,
                                       save_best_only=True, patience=1, lr_divide=dict_config["sgd_lr_divide"])
         early_stop = EarlyStopping(monitor='val_acc', patience=training_patience, verbose=0, mode='auto')
@@ -600,5 +607,5 @@ def random_search(meta, my_trainer):
         meta.scores.append(score_training_history(save_best.log_history, patience=training_patience))
         with open("data/variables/best", "w") as best_file:
             best_file.write(str(best_of_the_bests))
-        print("end of training %d" % i)
+        print("end of training %d_%d" % (i, id))
         print(score)
