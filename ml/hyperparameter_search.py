@@ -18,6 +18,8 @@ from ml import cnn_model
 from ml.trainer import Trainer
 from util import misc
 from util.misc import f_or_default
+import copy
+import heapq
 
 
 def append_to_dataset(dataset, score, dict_config):
@@ -429,6 +431,92 @@ def init_best():
     return best_of_the_bests
 
 
+def crossover(list1, list2, p1, p2):
+    """ swap the elements in index range p1 (inclusive) to p2 (exclusive) for list1 & and list2
+    :param list1: iterable
+    :param list2: iterable
+    :param p1: left pivot
+    :param p2: right pivot (must be larger than p1)
+    """
+    temp = list1[p1:p2]
+    list1[p1:p2] = list2[p1:p2]
+    list2[p1:p2] = temp
+
+
+def cross_list(list1, list2):
+    """ randomly pick two pivot points and swap the elements in between for list1 & list2
+    :param list1: iterable
+    :param list2: iterable
+    """
+    min_len = min(len(list1), len(list2))
+    if min_len == 0:  # nothing to do
+        return
+    pivot1 = np.random().uniform(0, min_len - 1)
+    pivot2 = np.random().uniform(pivot1, min_len)
+    crossover(list1, list2, pivot1, pivot2)
+
+
+"""
+{'bias_regularizers': [None, None, None, None], 'nb_pool': [3], 'nb_conv': [5, 3],
+               'sgd_momentum': 0.04509058440772208, 'img_cols': 28, 'sgd_decay': 3.970867037476346e-06,
+               'dense_weight_regularizers': [None, None, None, ('l2', 0.00590578693693914)], 'border_mode': 'valid',
+               'sgd_lr_divide': 1.6892790823754182, 'dense_layer_size': [749, 879, 254, 864],
+               'loss_function': 'categorical_crossentropy', 'nb_classes': 47, 'sgd_lr_init': 0.17006898785437682,
+               'dense_inits': ['uniform', 'glorot_uniform', 'uniform', 'glorot_uniform'], 'sgd_nesterov': False,
+               'nb_filter': [32, 47], 'activation': ['linear', 'relu', 'linear', 'relu', 'relu', 'relu'],
+               'nb_repeat': [2, 2, 2, 2, 1],
+               'dropout': [0.05581567092442845, 0.246871561047429298, 0.0575979640541265788, 0.4836863105510306,
+                           0.04954334377523167], 'dense_activity_regularizers': [None, None, None, None],
+               'img_rows': 28,'final_activation':'softmax'}
+"""
+
+
+def cross_config(config1, config2):
+    config3 = copy.deepcopy(config1)
+    config4 = copy.deepcopy(config2)
+    if np.random().uniform() < 0.5:
+        list1 = config3["dense_layer_size"]
+        list2 = config4["dense_layer_size"]
+        cross_list(list1, list2)
+    if np.random().uniform() < 0.5:
+        list1 = config3["dropout"]
+        list2 = config4["dropout"]
+        cross_list(list1, list2)
+    if np.random().uniform() < 0.2:
+        list1 = config3["nb_repeat"]
+        list2 = config4["nb_repeat"]
+        cross_list(list1, list2)
+    if np.random().uniform() < 0.2:
+        list1 = config3["nb_filter"]
+        list2 = config4["nb_filter"]
+        cross_list(list1, list2)
+    if np.random().uniform() < 0.2:
+        list1 = config3["dense_weight_regularizers"]
+        list2 = config4["dense_weight_regularizers"]
+        cross_list(list1, list2)
+    if np.random().uniform() < 0.2:
+        list1 = config3["dense_inits"]
+        list2 = config4["dense_inits"]
+        cross_list(list1, list2)
+    if np.random().uniform() < 0.2:
+        list1 = config3["dense_activity_regularizers"]
+        list2 = config4["dense_activity_regularizers"]
+        cross_list(list1, list2)
+    if np.random().uniform() < 0.2:
+        list1 = config3["bias_regularizers"]
+        list2 = config4["bias_regularizers"]
+        cross_list(list1, list2)
+    if np.random().uniform() < 0.2:
+        list1 = config3["activation"]
+        list2 = config4["activation"]
+        cross_list(list1, list2)
+    if np.random().uniform() < 0.2:
+        list1 = config3["nb_conv"]
+        list2 = config4["nb_conv"]
+        cross_list(list1, list2)
+    return config3, config4
+
+
 def mutate_config(config):
     if np.random.uniform() < 0.1:
         dropouts = config["dropout"]
@@ -507,15 +595,19 @@ def find_number_of_layers(dict_config):
         i += 1
     k_lim += 1  # flatten layer
     for _ in range(len(dense_layer_sizes)):
-        k_lim += nb_repeats[i]*3   # dense + activation + dropout
+        k_lim += nb_repeats[i] * 3  # dense + activation + dropout
         i += 1
     k_lim += 2  # dense layer equaling to the number of classes + final activation layer
     return k_lim
 
 
+def duplicate_config(config):
+    mutate_config(config)  # TODO duplication+modification
+
+
 def search_around_promising(meta, my_trainer, config, best_score, checkpoint_name, n_itr=100):
+    configs = 0
     itr = 0
-    import copy
     dense_limit = 3
     hard_limit = 7
     hidden_layer_limit = 1024
@@ -539,19 +631,24 @@ def search_around_promising(meta, my_trainer, config, best_score, checkpoint_nam
         if old_model is None:
             meta.configs.append(dict_config)
             model = construct_cnn(dict_config)
-        else:
+        elif np.random.uniform() < 0.9:  # else, crossover
             if np.random.uniform() < 0.5:  # mutate
                 mutate_config(dict_config)
+            elif np.random.uniform() < 0.2:  # duplicate
+                duplicate_config(dict_config)
             else:
-                k_lim = find_number_of_layers(old_config)-2  # discard the final dense+activation layer and insert new
-                # TODO add crossover with other promising models
+                k_lim = find_number_of_layers(old_config) - 2  # discard the final dense+activation layer and insert new
                 if np.random.uniform() < 0.8:  # increase depth
                     random_add_dense_to_config(dict_config, 1, hard_limit, hidden_layer_limit, inits,
                                                dense_activation_functions, regularizers, dropout_limit,
                                                activity_regularizers)
                 else:  # decrease depth
-                    k_lim -= 1;
+                    k_lim -= 1
             construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)
+        else:  # crossover with other promising models
+            children = cross_config(dict_config, configs[np.random.randint(0, len(configs))])  # pick a random mate
+            dict_config = children[np.random().randint(0, 2)]
+            construct_cnn(dict_config)
         if model is None:
             print("something is wrong with the config")
             return
@@ -573,6 +670,15 @@ def search_around_promising(meta, my_trainer, config, best_score, checkpoint_nam
             dict_config = copy.deepcopy(old_config)  # revert back one step if not the best
         else:
             old_model = model
+
+            class Pack():
+                pass
+
+            config_obj = Pack()
+            config_obj.score = score
+            config_obj.config = dict_config
+            heapq.heappush(configs, config_obj)
+            heapq.heapreplace(configs, )
         meta.scores.append(score_training_history(save_best.log_history, patience=test_patience))
 
 
