@@ -602,7 +602,29 @@ def find_number_of_layers(dict_config):
 
 
 def duplicate_config(config):
-    mutate_config(config)  # TODO duplication+modification
+    """
+    :param config: duplication & modification
+    """
+    # duplicate dense
+    dense_layer_size = config["dense_layer_size"]
+    dense_inits = config["dense_inits"]
+    dense_weight_regularizers = config["dense_weight_regularizers"]
+    dense_activity_regularizers = config["dense_activity_regularizers"]
+    bias_regularizers = config["bias_regularizers"]
+    # duplicate conv
+    nb_filters = config["nb_filter"]
+    nb_convs = config["nb_conv"]
+    nb_pools = config["nb_pool"]
+    # duplicate other affected elements
+    nb_repeats = config["nb_repeat"]
+    dropouts = config["dropout"]
+    activations = config["activation"]
+    if np.random().uniform()<0.5:  # duplicate some convolution layers
+        pass  # TODO
+    else:  # duplicate some dense layers
+        pass  # TODO
+    mutate_config(config)
+
 
 
 def search_around_promising(meta, my_trainer, config, best_score, checkpoint_name, n_itr=100):
@@ -635,7 +657,7 @@ def search_around_promising(meta, my_trainer, config, best_score, checkpoint_nam
             if np.random.uniform() < 0.5:  # mutate
                 mutate_config(dict_config)
             elif np.random.uniform() < 0.2:  # duplicate
-                duplicate_config(dict_config)
+                duplicate_config(dict_config) # TODO implement this
             else:
                 k_lim = find_number_of_layers(old_config) - 2  # discard the final dense+activation layer and insert new
                 if np.random.uniform() < 0.8:  # increase depth
