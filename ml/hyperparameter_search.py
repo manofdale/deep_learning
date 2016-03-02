@@ -518,9 +518,9 @@ def cross_config(config1, config2):
 
 
 def mutate_config(config):
-    if np.random.uniform() < 0.1:
+    if np.random.uniform() < 0.5:
         dropouts = config["dropout"]
-        config["dropout"] = misc.mutate_list(dropouts, low=0, high=0.5, rand=np.random.uniform)
+        config["dropout"] = misc.mutate_list(dropouts, low=0.075, high=0.55, rand=np.random.uniform)
     elif np.random.uniform() < 0.1:
         config['sgd_lr_divide'] = 1 + np.random.uniform() * 3
     elif np.random.uniform() < 0.1:
