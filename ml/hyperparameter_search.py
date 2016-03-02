@@ -707,13 +707,17 @@ def search_around_promising(meta, my_trainer, config, best_score, checkpoint_nam
         print(score)
 
         if not save_best.monitor_op(save_best.best_of_the_bests, best_of_the_bests):
-            print("found a good model")
+            print("the training results were ordinary")
             if len(population_configs) < population_size:
                 heapq.heappush(population_configs, (score, dict_config))
             elif np.random().uniform() < 0.5:  # discard it with 0.5 probability
                 heapq.heapreplace(population_configs, (score, dict_config))
-            dict_config = copy.deepcopy(old_config)  # revert back one step if not the best
+            if np.random().uniform()<0.5:
+                dict_config = copy.deepcopy(old_config)  # revert back one step if not the best
+            else:
+                dict_config = population_configs[np.random.randint(0,len(population_configs))][1]
         else:
+            print("found a good model")
             old_model = model
             if len(population_configs) < population_size:
                 heapq.heappush(population_configs, (score, dict_config))
