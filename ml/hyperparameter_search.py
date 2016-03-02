@@ -529,9 +529,6 @@ def mutate_config(config):
     elif np.random.uniform() < 0.1:
         config['sgd_lr_init'] = 0.170 + np.random.uniform(-0.1695, 0.5)
     elif np.random.uniform() < 0.1:
-        nb_repeats = config['nb_repeat']
-        config['nb_repeat'] = misc.mutate_list(nb_repeats, low=1, high=6, rand=np.random.randint)
-    elif np.random.uniform() < 0.1:
         config['sgd_nesterov'] = np.random.uniform() < 0.5
     if np.random.uniform() < 0.1:
         def replace(low=0, high=0):
@@ -579,10 +576,25 @@ def mutate_config(config):
 
         dense_bias = config['bias_regularizers']
         config['bias_regularizers'] = misc.mutate_list(dense_bias, replace=replace)
-        # if np.random.uniform()<0.1:
-        #    nb_filters=config['nb_filter']
-        #    config['nb_filter']=misc.mutate_list(nb_filters,low=min(nb_filters)/2+5,
-        #                                         high=max(nb_filters)*2, rand=np.random.randint)
+    if np.random.uniform() < 0.3:  # not safe to use old weights
+        if np.random.uniform() < 0.3:
+            nb_filters = config['nb_filter']
+            config['nb_filter'] = misc.mutate_list(nb_filters, low=min(nb_filters) // 2 + 5,
+                                                   high=max(nb_filters) + 10, rand=np.random.randint)
+        elif np.random.uniform() < 0.4:
+            nb_convs = config["nb_conv"]
+            config["nb_conv"] = misc.mutate_list(nb_convs, low=min(nb_convs) // 2 + 1,
+                                                 high=max(nb_convs) + 2, rand=np.random.randint)
+        elif np.random.uniform() < 0.5:
+            dense_layers = config["dense_layer_size"]
+            config["dense_layers"] = misc.mutate_list(dense_layers, low=min(dense_layers) // 2 + 50,
+                                                      high=1024, rand=np.random.randint)
+        else:
+            nb_repeats = config['nb_repeat']
+            config['nb_repeat'] = misc.mutate_list(nb_repeats, low=1, high=6, rand=np.random.randint)
+        return False
+    else:  # safe to use old weights
+        return True
 
 
 def find_number_of_layers(dict_config):
@@ -602,11 +614,12 @@ def find_number_of_layers(dict_config):
 
 
 def duplicate_config(config):
-    """
-    :param config: duplication & modification
+    """ duplication & modification
+
+    :param config:
     """
     # duplicate dense
-    dense_layer_size = config["dense_layer_size"]
+    dense_layer_sizes = config["dense_layer_size"]
     dense_inits = config["dense_inits"]
     dense_weight_regularizers = config["dense_weight_regularizers"]
     dense_activity_regularizers = config["dense_activity_regularizers"]
@@ -619,18 +632,25 @@ def duplicate_config(config):
     nb_repeats = config["nb_repeat"]
     dropouts = config["dropout"]
     activations = config["activation"]
-    if np.random().uniform()<0.5:  # duplicate some convolution layers
-        pass  # TODO
+    if np.random().uniform() < 0.5:  # duplicate some convolution layers
+        return mutate_config(config) # TODO implement conv duplicate
     else:  # duplicate some dense layers
-        pass  # TODO
-    mutate_config(config)
-
+        p = np.random.uniform(0, len(dense_layer_sizes))
+        p -= len(dense_layer_sizes)  # duplicate last p elements, e.g dense_inits[p:]
+        config["dense_inits"] += dense_inits[p:]
+        config["dense_weight_regularizers"] += dense_weight_regularizers[p:]
+        config["dense_activity_regularizers"] += dense_activity_regularizers[p:]
+        config["bias_regularizers"] += bias_regularizers[p:]
+        config["nb_repeat"] += nb_repeats[p:]
+        config["dropout"] += dropouts[p:]
+        config["activation"] += activations[p:]
+        return True  # safe to use the old model weights
 
 
 def search_around_promising(meta, my_trainer, config, best_score, checkpoint_name, n_itr=100):
-    configs = 0
+    population_size = 100
+    population_configs = [(best_score, config)]
     itr = 0
-    dense_limit = 3
     hard_limit = 7
     hidden_layer_limit = 1024
     inits = ['zero', 'glorot_uniform', 'normal', 'glorot_uniform', 'uniform', 'glorot_uniform',
@@ -655,9 +675,9 @@ def search_around_promising(meta, my_trainer, config, best_score, checkpoint_nam
             model = construct_cnn(dict_config)
         elif np.random.uniform() < 0.9:  # else, crossover
             if np.random.uniform() < 0.5:  # mutate
-                mutate_config(dict_config)
+                safe_to_use_old_weights = mutate_config(dict_config)
             elif np.random.uniform() < 0.2:  # duplicate
-                duplicate_config(dict_config) # TODO implement this
+                safe_to_use_old_weights = duplicate_config(dict_config)  # TODO implement this
             else:
                 k_lim = find_number_of_layers(old_config) - 2  # discard the final dense+activation layer and insert new
                 if np.random.uniform() < 0.8:  # increase depth
@@ -666,9 +686,12 @@ def search_around_promising(meta, my_trainer, config, best_score, checkpoint_nam
                                                activity_regularizers)
                 else:  # decrease depth
                     k_lim -= 1
-            construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)
-        else:  # crossover with other promising models
-            children = cross_config(dict_config, configs[np.random.randint(0, len(configs))])  # pick a random mate
+            if safe_to_use_old_weights:
+                construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)
+            else:
+                construct_cnn(dict_config)
+        else:  # crossover with other promising models, pick a random mate from the population
+            children = cross_config(dict_config, population_configs[np.random.randint(0, len(population_configs))][1])
             dict_config = children[np.random().randint(0, 2)]
             construct_cnn(dict_config)
         if model is None:
@@ -689,18 +712,17 @@ def search_around_promising(meta, my_trainer, config, best_score, checkpoint_nam
         print(score)
 
         if not save_best.monitor_op(save_best.best_of_the_bests, best_of_the_bests):
+            if len(population_configs) < population_size:
+                heapq.heappush(population_configs, (score, dict_config))
+            elif np.random().uniform() < 0.5:  # discard it with 0.5 probability
+                heapq.heapreplace(population_configs, (score, dict_config))
             dict_config = copy.deepcopy(old_config)  # revert back one step if not the best
         else:
             old_model = model
-
-            class Pack():
-                pass
-
-            config_obj = Pack()
-            config_obj.score = score
-            config_obj.config = dict_config
-            heapq.heappush(configs, config_obj)
-            heapq.heapreplace(configs, )
+            if len(population_configs) < population_size:
+                heapq.heappush(population_configs, (score, dict_config))
+            else:
+                heapq.heapreplace(population_configs, (score, dict_config))
         meta.scores.append(score_training_history(save_best.log_history, patience=test_patience))
 
 
