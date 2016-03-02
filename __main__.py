@@ -15,7 +15,7 @@ dict_config = {'bias_regularizers': [None, None], 'nb_pool': [3], 'nb_conv': [3,
                'loss_function': 'categorical_crossentropy', 'nb_classes': 47, 'sgd_lr_init': 0.11694265856353742,
                'dense_inits': ['uniform', 'glorot_uniform'], 'sgd_nesterov': True, 'nb_filter': [16, 44],
                'activation': ['relu', 'relu', 'relu', 'relu'],'final_activation':'softmax', 'nb_repeat': [1, 2, 2],
-               'dropout': [0.10595141800496129, 0.1739859909661407, 0.010399789654762237],
+               'dropout': [0.10595141800496129, 0.4739859909661407, 0.50399789654762237],
                'dense_activity_regularizers': [None, None], 'img_rows': 28}
 """{'bias_regularizers': [None, None, None, None], 'nb_pool': [3], 'nb_conv': [5, 3],
                'sgd_momentum': 0.04509058440772208, 'img_cols': 28, 'sgd_decay': 3.970867037476346e-06,
