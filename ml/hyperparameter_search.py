@@ -472,6 +472,10 @@ def cross_list(list1, list2):
 
 
 def cross_config(config1, config2):
+    print("before crossover:")
+    print(config1)
+    print(config2)
+
     config3 = copy.deepcopy(config1)
     config4 = copy.deepcopy(config2)
     if np.random().uniform() < 0.5:
@@ -514,6 +518,9 @@ def cross_config(config1, config2):
         list1 = config3["nb_conv"]
         list2 = config4["nb_conv"]
         cross_list(list1, list2)
+    print("after crossover:")
+    print(config3)
+    print(config4)
     return config3, config4
 
 
