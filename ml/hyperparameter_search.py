@@ -519,8 +519,7 @@ def cross_config(config1, config2):
 
 def mutate_config(config):
     if np.random.uniform() < 0.5:
-        dropouts = config["dropout"]
-        config["dropout"] = misc.mutate_list(dropouts, low=0.075, high=0.55, rand=np.random.uniform)
+        config["dropout"] = misc.mutate_list(config["dropout"], low=0.075, high=0.55, rand=np.random.uniform)
     elif np.random.uniform() < 0.1:
         config['sgd_lr_divide'] = 1 + np.random.uniform() * 3
     elif np.random.uniform() < 0.1:
@@ -535,8 +534,7 @@ def mutate_config(config):
             dense_activation_functions = ['relu', 'hard_sigmoid', 'relu', 'linear', 'sigmoid', 'tanh']
             return dense_activation_functions[np.random.randint(0, len(dense_activation_functions))]
 
-        activations = config["activation"]
-        config["activation"] = misc.mutate_list(activations, replace=replace)
+        config["activation"] = misc.mutate_list(config["activation"], replace=replace)
     if np.random.uniform() < 0.1:
         def replace(low=0, high=0):
             activity_regularizers = ['activity_l1', 'activity_l2', 'activity_l1l2', 'activity_l2']
@@ -548,8 +546,7 @@ def mutate_config(config):
             else:
                 return reg, np.random.uniform() * 0.1
 
-        dense_activity = config['dense_activity_regularizers']
-        config['dense_activity_regularizers'] = misc.mutate_list(dense_activity, replace=replace)
+        config['dense_activity_regularizers'] = misc.mutate_list(config['dense_activity_regularizers'], replace=replace)
     if np.random.uniform() < 0.1:
         def replace(low=0, high=0):
             regularizers = ['l1', 'l2', 'l1l2', 'l2', ]
@@ -561,8 +558,7 @@ def mutate_config(config):
             else:
                 return reg, np.random.uniform() * 0.1
 
-        dense_weight = config['dense_weight_regularizers']
-        config['dense_weight_regularizers'] = misc.mutate_list(dense_weight, replace=replace)
+        config['dense_weight_regularizers'] = misc.mutate_list(config['dense_weight_regularizers'], replace=replace)
     if np.random.uniform() < 0.1:
         def replace(low=0, high=0):
             regularizers = ['l1', 'l2', 'l1l2', 'l2', ]
@@ -574,8 +570,7 @@ def mutate_config(config):
             else:
                 return reg, np.random.uniform() * 0.1
 
-        dense_bias = config['bias_regularizers']
-        config['bias_regularizers'] = misc.mutate_list(dense_bias, replace=replace)
+        config['bias_regularizers'] = misc.mutate_list(config['bias_regularizers'], replace=replace)
     if np.random.uniform() < 0.3:  # not safe to use old weights
         if np.random.uniform() < 0.3:
             nb_filters = config['nb_filter']
@@ -712,6 +707,7 @@ def search_around_promising(meta, my_trainer, config, best_score, checkpoint_nam
         print(score)
 
         if not save_best.monitor_op(save_best.best_of_the_bests, best_of_the_bests):
+            print("found a good model")
             if len(population_configs) < population_size:
                 heapq.heappush(population_configs, (score, dict_config))
             elif np.random().uniform() < 0.5:  # discard it with 0.5 probability
