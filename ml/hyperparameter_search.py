@@ -710,8 +710,8 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
             elif np.random.uniform(0, 1) < 0.2:  # duplicate
                 safe_to_use_old_weights = duplicate_config(dict_config)
             else:
-                print("add a new dense layer in config:")
-                print(config)
+                print("add a new dense layer to old config:")
+                print(dict_config)
                 if np.random.uniform(0, 1) < 0.8:  # increase depth
                     random_add_dense_to_config(dict_config, 1, hard_limit, hidden_layer_limit, inits,
                                                dense_activation_functions, regularizers, dropout_limit,
@@ -721,7 +721,8 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                 safe_to_use_old_weights = True
             if safe_to_use_old_weights:
                 print("usig old weights")
-                construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)
+                # construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)  # TODO fix
+                construct_cnn(dict_config)
             else:
                 construct_cnn(dict_config)
         else:  # crossover with other promising models, pick a random mate from the population
