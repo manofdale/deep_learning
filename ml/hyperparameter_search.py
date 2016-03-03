@@ -533,7 +533,7 @@ def mutate_config(config):
     print("mutating:")
     print(config)
     if np.random.uniform(0, 1) < 0.5:
-        config["dropout"] = misc.mutate_list(config["dropout"], low=0.075, high=0.55, rand=np.random.uniform)
+        config["dropout"] = misc.mutate_list(config["dropout"], low=0.075, high=0.55, replace=np.random.uniform)
     elif np.random.uniform(0, 1) < 0.1:
         config['sgd_lr_divide'] = 1 + np.random.uniform(0, 1) * 3
     elif np.random.uniform(0, 1) < 0.1:
@@ -589,18 +589,18 @@ def mutate_config(config):
         if np.random.uniform(0, 1) < 0.3:
             nb_filters = config['nb_filter']
             config['nb_filter'] = misc.mutate_list(nb_filters, low=min(nb_filters) // 2 + 5,
-                                                   high=max(nb_filters) + 10, rand=np.random.randint)
+                                                   high=max(nb_filters) + 10, replace=np.random.randint)
         elif np.random.uniform(0, 1) < 0.4:
             nb_convs = config["nb_conv"]
             config["nb_conv"] = misc.mutate_list(nb_convs, low=min(nb_convs) // 2 + 1,
-                                                 high=max(nb_convs) + 2, rand=np.random.randint)
+                                                 high=max(nb_convs) + 2, replace=np.random.randint)
         elif np.random.uniform(0, 1) < 0.5:
             dense_layers = config["dense_layer_size"]
             config["dense_layers"] = misc.mutate_list(dense_layers, low=min(dense_layers) // 2 + 50,
-                                                      high=1024, rand=np.random.randint)
+                                                      high=1024, replace=np.random.randint)
         else:
             nb_repeats = config['nb_repeat']
-            config['nb_repeat'] = misc.mutate_list(nb_repeats, low=1, high=6, rand=np.random.randint)
+            config['nb_repeat'] = misc.mutate_list(nb_repeats, low=1, high=6, replace=np.random.randint)
         return False
     else:  # safe to use old weights
         return True
