@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
+import os
 import numpy as np
 import pickle
 import random
@@ -677,6 +678,10 @@ def search_around_promising(meta, my_trainer, config, best_score, checkpoint_nam
         if old_model is None:
             meta.configs.append(dict_config)
             model = construct_cnn(dict_config)
+            if os.path.isfile("data/models/promising_cnn_config_test_%s_%d_incremental.hdf5" % (checkpoint_name, itr)):
+                model.load_weights(
+                    "data/models/promising_cnn_config_test_%s_%d_incremental.hdf5" % (checkpoint_name, itr))
+                itr += 1  # skip the first model
         elif np.random.uniform(0, 1) < 0.9:  # else, crossover
             if np.random.uniform(0, 1) < 0.5:  # mutate
                 safe_to_use_old_weights = mutate_config(dict_config)
@@ -701,7 +706,6 @@ def search_around_promising(meta, my_trainer, config, best_score, checkpoint_nam
         if model is None:
             print("something is wrong with the config")
             return
-
         my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
                                         reshape_output=cnn_model.reshape_str_output)
         save_best = MyModelCheckpoint(
