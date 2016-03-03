@@ -337,6 +337,7 @@ def construct_cnn(dict_config, old_model=None, k_lim=0):
 
     :return: keras models of type Sequential
     """
+    print("constructing:")
     print(dict_config)
     model = Sequential()
     nb_filters = dict_config["nb_filter"]
@@ -531,7 +532,6 @@ def cross_config(config1, config2):
 def mutate_config(config):
     print("mutating:")
     print(config)
-    print("into:")
     if np.random.uniform(0, 1) < 0.5:
         config["dropout"] = misc.mutate_list(config["dropout"], low=0.075, high=0.55, rand=np.random.uniform)
     elif np.random.uniform(0, 1) < 0.1:
@@ -703,7 +703,10 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
         elif np.random.uniform(0, 1) < 0.9:  # else, crossover
             k_lim = find_number_of_layers(old_config) - 2  # discard the final dense+activation layer and insert new
             if np.random.uniform(0, 1) < 0.5:  # mutate
-                safe_to_use_old_weights = mutate_config(dict_config)
+                temp_config = copy.deepcopy(dict_config)
+                while str(temp_config) == str(dict_config):
+                    safe_to_use_old_weights = mutate_config(dict_config)
+
             elif np.random.uniform(0, 1) < 0.2:  # duplicate
                 safe_to_use_old_weights = duplicate_config(dict_config)
             else:
@@ -717,6 +720,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                     k_lim -= 1
                 safe_to_use_old_weights = True
             if safe_to_use_old_weights:
+                print("usig old weights")
                 construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)
             else:
                 construct_cnn(dict_config)
