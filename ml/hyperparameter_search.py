@@ -91,6 +91,7 @@ class MyModelCheckpoint(ModelCheckpoint):
             self.old_best = self.best
             if self.monitor_op(self.best, self.best_of_the_bests):
                 print("best %s of the bests with %f" % (self.monitor, self.best))
+                self.best_of_the_bests = self.best
                 self.model.save_weights("data/models/best_of_the_bests.hdf5", overwrite=True)
         else:
             self.patience_ctr += 1
@@ -737,9 +738,9 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
         score = my_trainer.train(callbacks=[save_best, early_stop])
         print("end of training %s" % checkpoint_name)
         print(score)
-
+        meta_score, meta_best = score_training_history(save_best.log_history, patience=test_patience)
         if not save_best.monitor_op(save_best.best_of_the_bests, best_of_the_bests):
-            print("score of this training: %f. Best score so far: %f" % (save_best.best_of_the_bests, best_of_the_bests))
+            print("score of this training: %f. Best score so far: %f" % (meta_best, best_of_the_bests))
             if len(population_configs) < population_size:
                 heapq.heappush(population_configs, (score, dict_config))
             elif np.random.uniform(0, 1) < 0.5:  # replace the worst config with 0.5 probability
@@ -755,8 +756,8 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                 heapq.heappush(population_configs, (score, dict_config))
             else:
                 heapq.heapreplace(population_configs, (score, dict_config))
-            best_of_the_bests=save_best.best_of_the_bests
-        meta.scores.append(score_training_history(save_best.log_history, patience=test_patience))
+            best_of_the_bests = save_best.best_of_the_bests
+        meta.scores.append((meta_score, meta_best))
 
 
 def random_search(meta, my_trainer, id):
