@@ -643,7 +643,19 @@ def duplicate_config(config):
     dropouts = config["dropout"]
     activations = config["activation"]
     if np.random.uniform(0, 1) < 0.5:  # duplicate some convolution layers
-        return mutate_config(config)  # TODO implement conv duplicate
+        p = np.random.uniform(0, len(nb_convs))
+        p -= len(nb_convs)  # TODO refactor config and separate cnn and dense attributes completely
+        cnn_dropouts = config["nb_dropout"][0:len(nb_pools)]
+        cnn_nb_repeats = config["nb_repeat"][0:len(nb_pools)]
+        cnn_activations = config["activation"][0:len(nb_pools) + 1]
+        config["nb_conv"] += nb_convs[p:]
+        config["nb_filters"] += nb_filters[p:]
+        config["activation"] = cnn_activations + cnn_activations[p:] + config["activation"][len(nb_pools) + 1:]
+        p = max(-len(nb_pools), p)
+        config["nb_pool"] += nb_pools[p:]
+        config["nb_repeat"] = cnn_nb_repeats + cnn_nb_repeats[p:] + config["nb_repeat"][len(nb_pools):]
+        config["nb_dropout"] = cnn_dropouts + cnn_dropouts[p:] + config["nb_dropout"][len(nb_pools):]
+        return False
     else:  # duplicate some dense layers
         p = np.random.uniform(0, len(dense_layer_sizes))
         p -= len(dense_layer_sizes)  # duplicate last p elements, e.g dense_inits[p:]
@@ -659,7 +671,7 @@ def duplicate_config(config):
 
 def search_around_promising(meta, my_trainer, population_configs, best_score, checkpoint_name, n_itr=100):
     population_size = 100
-    config = population_configs[2][0]  # start with three configs in the population, the last one being the best
+    config = population_configs[2][1]  # start with three configs in the population, the last one being the best
     itr = 0
     hard_limit = 7
     hidden_layer_limit = 1024
@@ -675,7 +687,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
     dict_config = copy.deepcopy(config)  # initial config
 
     best_of_the_bests = best_score
-    test_patience = 10
+    test_patience = 9
     while itr < n_itr:
         itr += 1
         old_config = copy.deepcopy(dict_config)
@@ -728,7 +740,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
 
         if not save_best.monitor_op(save_best.best_of_the_bests, best_of_the_bests):
             print("score of this training: %f, %f. Best score so far: %f" % (
-                  score, save_best.best_of_the_bests, best_of_the_bests))
+                score, save_best.best_of_the_bests, best_of_the_bests))
             if len(population_configs) < population_size:
                 heapq.heappush(population_configs, (score, dict_config))
             elif np.random.uniform(0, 1) < 0.5:  # replace the worst config with 0.5 probability
