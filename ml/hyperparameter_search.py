@@ -528,6 +528,9 @@ def cross_config(config1, config2):
 
 
 def mutate_config(config):
+    print("mutating:")
+    print(config)
+    print("into:")
     if np.random.uniform(0, 1) < 0.5:
         config["dropout"] = misc.mutate_list(config["dropout"], low=0.075, high=0.55, rand=np.random.uniform)
     elif np.random.uniform(0, 1) < 0.1:
@@ -624,6 +627,8 @@ def duplicate_config(config):
     :param config:
     """
     # duplicate dense
+    print("duplicate config:")
+    print(config)
     dense_layer_sizes = config["dense_layer_size"]
     dense_inits = config["dense_inits"]
     dense_weight_regularizers = config["dense_weight_regularizers"]
@@ -652,9 +657,9 @@ def duplicate_config(config):
         return True  # safe to use the old model weights
 
 
-def search_around_promising(meta, my_trainer, config, best_score, checkpoint_name, n_itr=100):
+def search_around_promising(meta, my_trainer, population_configs, best_score, checkpoint_name, n_itr=100):
     population_size = 100
-    population_configs = [(best_score, config)]
+    config = population_configs[2][0]  # start with three configs in the population, the last one being the best
     itr = 0
     hard_limit = 7
     hidden_layer_limit = 1024
@@ -686,8 +691,10 @@ def search_around_promising(meta, my_trainer, config, best_score, checkpoint_nam
             if np.random.uniform(0, 1) < 0.5:  # mutate
                 safe_to_use_old_weights = mutate_config(dict_config)
             elif np.random.uniform(0, 1) < 0.2:  # duplicate
-                safe_to_use_old_weights = duplicate_config(dict_config)  # TODO implement this
+                safe_to_use_old_weights = duplicate_config(dict_config)
             else:
+                print("add a new dense layer in config:")
+                print(config)
                 k_lim = find_number_of_layers(old_config) - 2  # discard the final dense+activation layer and insert new
                 if np.random.uniform(0, 1) < 0.8:  # increase depth
                     random_add_dense_to_config(dict_config, 1, hard_limit, hidden_layer_limit, inits,
@@ -720,15 +727,16 @@ def search_around_promising(meta, my_trainer, config, best_score, checkpoint_nam
         print(score)
 
         if not save_best.monitor_op(save_best.best_of_the_bests, best_of_the_bests):
-            print("the training results were ordinary")
+            print("score of this training: %f, %f. Best score so far: %f" % (
+                  score, save_best.best_of_the_bests, best_of_the_bests))
             if len(population_configs) < population_size:
                 heapq.heappush(population_configs, (score, dict_config))
-            elif np.random.uniform(0, 1) < 0.5:  # discard it with 0.5 probability
+            elif np.random.uniform(0, 1) < 0.5:  # replace the worst config with 0.5 probability
                 heapq.heapreplace(population_configs, (score, dict_config))
             if np.random.uniform(0, 1) < 0.5:
-                dict_config = copy.deepcopy(old_config)  # revert back one step if not the best
-            else:
-                dict_config = population_configs[np.random.randint(0, len(population_configs))][1]
+                dict_config = copy.deepcopy(old_config)  # just revert back one step without doing anything
+            else:  # search around another promising config
+                dict_config = copy.deepcopy(population_configs[np.random.randint(0, len(population_configs))][1])
         else:
             print("found a good model")
             old_model = model
