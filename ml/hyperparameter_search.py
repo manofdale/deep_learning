@@ -715,6 +715,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                                                activity_regularizers)
                 else:  # decrease depth
                     k_lim -= 1
+                safe_to_use_old_weights = True
             if safe_to_use_old_weights:
                 construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)
             else:
