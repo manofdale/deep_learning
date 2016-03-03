@@ -701,6 +701,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                     "data/models/promising_cnn_config_test_%s_%d_incremental.hdf5" % (checkpoint_name, itr))
                 itr += 1  # skip the first model
         elif np.random.uniform(0, 1) < 0.9:  # else, crossover
+            k_lim = find_number_of_layers(old_config) - 2  # discard the final dense+activation layer and insert new
             if np.random.uniform(0, 1) < 0.5:  # mutate
                 safe_to_use_old_weights = mutate_config(dict_config)
             elif np.random.uniform(0, 1) < 0.2:  # duplicate
@@ -708,7 +709,6 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
             else:
                 print("add a new dense layer in config:")
                 print(config)
-                k_lim = find_number_of_layers(old_config) - 2  # discard the final dense+activation layer and insert new
                 if np.random.uniform(0, 1) < 0.8:  # increase depth
                     random_add_dense_to_config(dict_config, 1, hard_limit, hidden_layer_limit, inits,
                                                dense_activation_functions, regularizers, dropout_limit,
