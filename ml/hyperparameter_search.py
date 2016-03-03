@@ -755,6 +755,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                 heapq.heappush(population_configs, (score, dict_config))
             else:
                 heapq.heapreplace(population_configs, (score, dict_config))
+            best_of_the_bests=save_best.best_of_the_bests
         meta.scores.append(score_training_history(save_best.log_history, patience=test_patience))
 
 
