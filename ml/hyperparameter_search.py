@@ -720,7 +720,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                 construct_cnn(dict_config)
         else:  # crossover with other promising models, pick a random mate from the population
             children = cross_config(dict_config, population_configs[np.random.randint(0, len(population_configs))][1])
-            dict_config = children[np.random().randint(0, 2)]
+            dict_config = children[np.random.randint(0, 2)]
             construct_cnn(dict_config)
         if model is None:
             print("something is wrong with the config")
@@ -739,8 +739,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
         print(score)
 
         if not save_best.monitor_op(save_best.best_of_the_bests, best_of_the_bests):
-            print("score of this training: %f, %f. Best score so far: %f" % (
-                score, save_best.best_of_the_bests, best_of_the_bests))
+            print("score of this training: %f. Best score so far: %f" % (save_best.best_of_the_bests, best_of_the_bests))
             if len(population_configs) < population_size:
                 heapq.heappush(population_configs, (score, dict_config))
             elif np.random.uniform(0, 1) < 0.5:  # replace the worst config with 0.5 probability
