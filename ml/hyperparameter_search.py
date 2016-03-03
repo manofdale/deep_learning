@@ -96,7 +96,7 @@ class MyModelCheckpoint(ModelCheckpoint):
             if self.patience_ctr > self.patience:
                 lr = self.model.optimizer.get_config()["lr"]
                 if lr < 0.001:
-                    lr = np.random().uniform(0, 1) * 0.2
+                    lr = np.random.uniform(0, 1) * 0.2
                     print("assigning new random learning rate:%f" % lr)
                     K.set_value(self.model.optimizer.lr, lr)
                 else:
@@ -208,10 +208,10 @@ def random_add_cnn_to_config(config, cnn_limit, cnn_layer_n, nb_conv, nb_filters
         pool = 2 + random.randint(0, nb_pool)
         hard_limit //= pool
         print(hard_limit, pool, conv)
-        if np.random().uniform(0, 1) < 0.2 or hard_limit < 4:
+        if np.random.uniform(0, 1) < 0.2 or hard_limit < 4:
             break
         activation_func = cnn_activation_functions[random.randint(0, len(cnn_activation_functions) - 1)]
-        dropout_rate = np.random().uniform(0, 1) * cnn_dropout_limit * np.random().uniform(0, 1)
+        dropout_rate = np.random.uniform(0, 1) * cnn_dropout_limit * np.random.uniform(0, 1)
         nb_filter = 10 + random.randint(0, nb_filters)
         layer_limit = random.randint(2, 6)
         r = 1 + random.randint(0, layer_limit - 1)
@@ -230,7 +230,7 @@ def random_add_dense_to_config(config, dense_limit, hard_limit, hidden_layer_lim
         if random.randint(0, 20) < 3:  # prevent from getting too big
             break
         hidden_layer_size = random.randint(hard_limit ** 2, hidden_layer_limit)
-        dropout_rate = np.random().uniform(0, 1) * dropout_limit
+        dropout_rate = np.random.uniform(0, 1) * dropout_limit
         layer_limit = random.randint(2, 4)
         r = 1 + random.randint(0, layer_limit - 1)
         init = inits[random.randint(0, len(inits) - 1)]
@@ -238,31 +238,31 @@ def random_add_dense_to_config(config, dense_limit, hard_limit, hidden_layer_lim
         activation_func = dense_activation_functions[random.randint(0, len(dense_activation_functions) - 1)]
         config["nb_repeat"].append(r)
         config["dense_layer_size"].append(hidden_layer_size)
-        if np.random().uniform(0, 1) < 0.1:
+        if np.random.uniform(0, 1) < 0.1:
             reg = regularizers[random.randint(0, len(regularizers) - 1)]
             if reg == 'l1l2':
                 config["dense_weight_regularizers"].append(
-                    (reg, np.random().uniform(0, 1) * 0.1, np.random().uniform(0, 1) * 0.1))
+                    (reg, np.random.uniform(0, 1) * 0.1, np.random.uniform(0, 1) * 0.1))
             else:
-                config["dense_weight_regularizers"].append((reg, np.random().uniform(0, 1) * 0.1))
+                config["dense_weight_regularizers"].append((reg, np.random.uniform(0, 1) * 0.1))
         else:
             config["dense_weight_regularizers"].append(None)
-        if np.random().uniform(0, 1) < 0.1:
+        if np.random.uniform(0, 1) < 0.1:
             reg = regularizers[random.randint(0, len(regularizers) - 1)]
             if reg == 'l1l2':
                 config["bias_regularizers"].append(
-                    (reg, np.random().uniform(0, 1) * 0.1, np.random().uniform(0, 1) * 0.1))
+                    (reg, np.random.uniform(0, 1) * 0.1, np.random.uniform(0, 1) * 0.1))
             else:
-                config["bias_regularizers"].append((reg, np.random().uniform(0, 1) * 0.1))
+                config["bias_regularizers"].append((reg, np.random.uniform(0, 1) * 0.1))
         else:
             config["bias_regularizers"].append(None)
-        if np.random().uniform(0, 1) < 0.1:
+        if np.random.uniform(0, 1) < 0.1:
             reg = activity_regularizers[random.randint(0, len(activity_regularizers) - 1)]
             if reg == 'activity_l1l2':
                 config["dense_activity_regularizers"].append(
-                    (reg, np.random().uniform(0, 1) * 0.1, np.random().uniform(0, 1) * 0.1,))
+                    (reg, np.random.uniform(0, 1) * 0.1, np.random.uniform(0, 1) * 0.1,))
             else:
-                config["dense_activity_regularizers"].append((reg, np.random().uniform(0, 1) * 0.1))
+                config["dense_activity_regularizers"].append((reg, np.random.uniform(0, 1) * 0.1))
         else:
             config["dense_activity_regularizers"].append(None)
         config["dropout"].append(dropout_rate)
@@ -273,15 +273,15 @@ def finalize_config(config, nb_classes, final_activation, loss_functions, lr_lim
     config["nb_classes"] = nb_classes
     config["final_activation"] = final_activation
     loss_function = loss_functions[random.randint(0, len(loss_functions) - 1)]
-    lr = np.random().uniform(0, 1) * lr_limit * np.random().uniform(0, 1) + 0.001
-    momentum = np.random().uniform(0, 1) * momentum_limit * np.random().uniform(0, 1) + 0.01
-    nesterov = np.random().uniform(0, 1) < 0.5
-    decay = np.random().uniform(0, 1) * 1e-5
+    lr = np.random.uniform(0, 1) * lr_limit * np.random.uniform(0, 1) + 0.001
+    momentum = np.random.uniform(0, 1) * momentum_limit * np.random.uniform(0, 1) + 0.01
+    nesterov = np.random.uniform(0, 1) < 0.5
+    decay = np.random.uniform(0, 1) * 1e-5
     config["sgd_lr_init"] = lr
     config["sgd_momentum"] = momentum
     config["sgd_nesterov"] = nesterov
     config["sgd_decay"] = decay
-    config["sgd_lr_divide"] = 1 + np.random().uniform(0, 1) * 3
+    config["sgd_lr_divide"] = 1 + np.random.uniform(0, 1) * 3
     config["loss_function"] = loss_function
     # TODO add other configs
     ''' sgd = SGD(lr=dict_config["sgd_lr_init"],
@@ -453,8 +453,8 @@ def cross_list(list1, list2):
     min_len = min(len(list1), len(list2))
     if min_len == 0:  # nothing to do
         return
-    pivot1 = np.random().uniform(0, min_len - 1)
-    pivot2 = np.random().uniform(pivot1, min_len)
+    pivot1 = np.random.uniform(0, min_len - 1)
+    pivot2 = np.random.uniform(pivot1, min_len)
     crossover(list1, list2, pivot1, pivot2)
 
 
@@ -480,43 +480,43 @@ def cross_config(config1, config2):
 
     config3 = copy.deepcopy(config1)
     config4 = copy.deepcopy(config2)
-    if np.random().uniform(0, 1) < 0.5:
+    if np.random.uniform(0, 1) < 0.5:
         list1 = config3["dense_layer_size"]
         list2 = config4["dense_layer_size"]
         cross_list(list1, list2)
-    if np.random().uniform(0, 1) < 0.5:
+    if np.random.uniform(0, 1) < 0.5:
         list1 = config3["dropout"]
         list2 = config4["dropout"]
         cross_list(list1, list2)
-    if np.random().uniform(0, 1) < 0.2:
+    if np.random.uniform(0, 1) < 0.2:
         list1 = config3["nb_repeat"]
         list2 = config4["nb_repeat"]
         cross_list(list1, list2)
-    if np.random().uniform(0, 1) < 0.2:
+    if np.random.uniform(0, 1) < 0.2:
         list1 = config3["nb_filter"]
         list2 = config4["nb_filter"]
         cross_list(list1, list2)
-    if np.random().uniform(0, 1) < 0.2:
+    if np.random.uniform(0, 1) < 0.2:
         list1 = config3["dense_weight_regularizers"]
         list2 = config4["dense_weight_regularizers"]
         cross_list(list1, list2)
-    if np.random().uniform(0, 1) < 0.2:
+    if np.random.uniform(0, 1) < 0.2:
         list1 = config3["dense_inits"]
         list2 = config4["dense_inits"]
         cross_list(list1, list2)
-    if np.random().uniform(0, 1) < 0.2:
+    if np.random.uniform(0, 1) < 0.2:
         list1 = config3["dense_activity_regularizers"]
         list2 = config4["dense_activity_regularizers"]
         cross_list(list1, list2)
-    if np.random().uniform(0, 1) < 0.2:
+    if np.random.uniform(0, 1) < 0.2:
         list1 = config3["bias_regularizers"]
         list2 = config4["bias_regularizers"]
         cross_list(list1, list2)
-    if np.random().uniform(0, 1) < 0.2:
+    if np.random.uniform(0, 1) < 0.2:
         list1 = config3["activation"]
         list2 = config4["activation"]
         cross_list(list1, list2)
-    if np.random().uniform(0, 1) < 0.2:
+    if np.random.uniform(0, 1) < 0.2:
         list1 = config3["nb_conv"]
         list2 = config4["nb_conv"]
         cross_list(list1, list2)
@@ -527,69 +527,69 @@ def cross_config(config1, config2):
 
 
 def mutate_config(config):
-    if np.random().uniform(0, 1) < 0.5:
+    if np.random.uniform(0, 1) < 0.5:
         config["dropout"] = misc.mutate_list(config["dropout"], low=0.075, high=0.55, rand=np.random.uniform)
-    elif np.random().uniform(0, 1) < 0.1:
-        config['sgd_lr_divide'] = 1 + np.random().uniform(0, 1) * 3
-    elif np.random().uniform(0, 1) < 0.1:
+    elif np.random.uniform(0, 1) < 0.1:
+        config['sgd_lr_divide'] = 1 + np.random.uniform(0, 1) * 3
+    elif np.random.uniform(0, 1) < 0.1:
         momentum_limit = 0.9
-        config['sgd_momentum'] = np.random().uniform(0, 1) * momentum_limit * np.random().uniform(0, 1) + 0.01
-    elif np.random().uniform(0, 1) < 0.1:
+        config['sgd_momentum'] = np.random.uniform(0, 1) * momentum_limit * np.random.uniform(0, 1) + 0.01
+    elif np.random.uniform(0, 1) < 0.1:
         config['sgd_lr_init'] = 0.170 + np.random.uniform(-0.1695, 0.5)
-    elif np.random().uniform(0, 1) < 0.1:
-        config['sgd_nesterov'] = np.random().uniform(0, 1) < 0.5
-    if np.random().uniform(0, 1) < 0.1:
+    elif np.random.uniform(0, 1) < 0.1:
+        config['sgd_nesterov'] = np.random.uniform(0, 1) < 0.5
+    if np.random.uniform(0, 1) < 0.1:
         def replace(low=0, high=0):
             dense_activation_functions = ['relu', 'hard_sigmoid', 'relu', 'linear', 'sigmoid', 'tanh']
             return dense_activation_functions[np.random.randint(0, len(dense_activation_functions))]
 
         config["activation"] = misc.mutate_list(config["activation"], replace=replace)
-    if np.random().uniform(0, 1) < 0.1:
+    if np.random.uniform(0, 1) < 0.1:
         def replace(low=0, high=0):
             activity_regularizers = ['activity_l1', 'activity_l2', 'activity_l1l2', 'activity_l2']
             reg = activity_regularizers[np.random.randint(0, len(activity_regularizers))]
-            if np.random().uniform(0, 1) > 0.3:
+            if np.random.uniform(0, 1) > 0.3:
                 return None
             if reg == 'activity_l1l2':
-                return reg, np.random().uniform(0, 1) * 0.1, np.random().uniform(0, 1) * 0.1
+                return reg, np.random.uniform(0, 1) * 0.1, np.random.uniform(0, 1) * 0.1
             else:
-                return reg, np.random().uniform(0, 1) * 0.1
+                return reg, np.random.uniform(0, 1) * 0.1
 
         config['dense_activity_regularizers'] = misc.mutate_list(config['dense_activity_regularizers'], replace=replace)
-    if np.random().uniform(0, 1) < 0.1:
+    if np.random.uniform(0, 1) < 0.1:
         def replace(low=0, high=0):
             regularizers = ['l1', 'l2', 'l1l2', 'l2', ]
             reg = regularizers[np.random.randint(0, len(regularizers))]
-            if np.random().uniform(0, 1) > 0.3:
+            if np.random.uniform(0, 1) > 0.3:
                 return None
             if reg == 'l1l2':
-                return reg, np.random().uniform(0, 1) * 0.1, np.random().uniform(0, 1) * 0.1
+                return reg, np.random.uniform(0, 1) * 0.1, np.random.uniform(0, 1) * 0.1
             else:
-                return reg, np.random().uniform(0, 1) * 0.1
+                return reg, np.random.uniform(0, 1) * 0.1
 
         config['dense_weight_regularizers'] = misc.mutate_list(config['dense_weight_regularizers'], replace=replace)
-    if np.random().uniform(0, 1) < 0.1:
+    if np.random.uniform(0, 1) < 0.1:
         def replace(low=0, high=0):
             regularizers = ['l1', 'l2', 'l1l2', 'l2', ]
             reg = regularizers[np.random.randint(0, len(regularizers))]
-            if np.random().uniform(0, 1) > 0.3:
+            if np.random.uniform(0, 1) > 0.3:
                 return None
             if reg == 'l1l2':
-                return reg, np.random().uniform(0, 1) * 0.1, np.random().uniform(0, 1) * 0.1
+                return reg, np.random.uniform(0, 1) * 0.1, np.random.uniform(0, 1) * 0.1
             else:
-                return reg, np.random().uniform(0, 1) * 0.1
+                return reg, np.random.uniform(0, 1) * 0.1
 
         config['bias_regularizers'] = misc.mutate_list(config['bias_regularizers'], replace=replace)
-    if np.random().uniform(0, 1) < 0.3:  # not safe to use old weights
-        if np.random().uniform(0, 1) < 0.3:
+    if np.random.uniform(0, 1) < 0.3:  # not safe to use old weights
+        if np.random.uniform(0, 1) < 0.3:
             nb_filters = config['nb_filter']
             config['nb_filter'] = misc.mutate_list(nb_filters, low=min(nb_filters) // 2 + 5,
                                                    high=max(nb_filters) + 10, rand=np.random.randint)
-        elif np.random().uniform(0, 1) < 0.4:
+        elif np.random.uniform(0, 1) < 0.4:
             nb_convs = config["nb_conv"]
             config["nb_conv"] = misc.mutate_list(nb_convs, low=min(nb_convs) // 2 + 1,
                                                  high=max(nb_convs) + 2, rand=np.random.randint)
-        elif np.random().uniform(0, 1) < 0.5:
+        elif np.random.uniform(0, 1) < 0.5:
             dense_layers = config["dense_layer_size"]
             config["dense_layers"] = misc.mutate_list(dense_layers, low=min(dense_layers) // 2 + 50,
                                                       high=1024, rand=np.random.randint)
@@ -636,7 +636,7 @@ def duplicate_config(config):
     nb_repeats = config["nb_repeat"]
     dropouts = config["dropout"]
     activations = config["activation"]
-    if np.random().uniform(0, 1) < 0.5:  # duplicate some convolution layers
+    if np.random.uniform(0, 1) < 0.5:  # duplicate some convolution layers
         return mutate_config(config)  # TODO implement conv duplicate
     else:  # duplicate some dense layers
         p = np.random.uniform(0, len(dense_layer_sizes))
@@ -677,14 +677,14 @@ def search_around_promising(meta, my_trainer, config, best_score, checkpoint_nam
         if old_model is None:
             meta.configs.append(dict_config)
             model = construct_cnn(dict_config)
-        elif np.random().uniform(0, 1) < 0.9:  # else, crossover
-            if np.random().uniform(0, 1) < 0.5:  # mutate
+        elif np.random.uniform(0, 1) < 0.9:  # else, crossover
+            if np.random.uniform(0, 1) < 0.5:  # mutate
                 safe_to_use_old_weights = mutate_config(dict_config)
-            elif np.random().uniform(0, 1) < 0.2:  # duplicate
+            elif np.random.uniform(0, 1) < 0.2:  # duplicate
                 safe_to_use_old_weights = duplicate_config(dict_config)  # TODO implement this
             else:
                 k_lim = find_number_of_layers(old_config) - 2  # discard the final dense+activation layer and insert new
-                if np.random().uniform(0, 1) < 0.8:  # increase depth
+                if np.random.uniform(0, 1) < 0.8:  # increase depth
                     random_add_dense_to_config(dict_config, 1, hard_limit, hidden_layer_limit, inits,
                                                dense_activation_functions, regularizers, dropout_limit,
                                                activity_regularizers)
@@ -719,9 +719,9 @@ def search_around_promising(meta, my_trainer, config, best_score, checkpoint_nam
             print("the training results were ordinary")
             if len(population_configs) < population_size:
                 heapq.heappush(population_configs, (score, dict_config))
-            elif np.random().uniform(0, 1) < 0.5:  # discard it with 0.5 probability
+            elif np.random.uniform(0, 1) < 0.5:  # discard it with 0.5 probability
                 heapq.heapreplace(population_configs, (score, dict_config))
-            if np.random().uniform(0, 1) < 0.5:
+            if np.random.uniform(0, 1) < 0.5:
                 dict_config = copy.deepcopy(old_config)  # revert back one step if not the best
             else:
                 dict_config = population_configs[np.random.randint(0, len(population_configs))][1]
