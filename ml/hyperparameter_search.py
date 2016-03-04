@@ -724,7 +724,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                 safe_to_use_old_weights = True
             if safe_to_use_old_weights:
                 print("usig old weights")
-                construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)  # TODO fix
+                construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)  # TODO implement tests
                 # construct_cnn(dict_config)
             else:
                 construct_cnn(dict_config)
@@ -753,13 +753,13 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
             if len(population_configs) < population_size:
                 print("heappush")
                 heapq.heappush(population_configs, (meta_best, dict_config))
-            elif np.random.uniform(0, 1) < 0.5:  # replace the worst config with 0.5 probability
+            elif np.random.uniform(0, 1) < meta_best:  # replace the worst config if the performance is not that bad
                 print("heapreplace")
                 heapq.heapreplace(population_configs, (meta_best, dict_config))
-            if np.random.uniform(0, 1) < 0.5:
+            if np.random.uniform(0, 1) < 0.2:  # exploitation
                 print("revert back to old config")
                 dict_config = copy.deepcopy(old_config)  # just revert back one step without doing anything
-            else:  # search around another promising config
+            else:  # search around another promising config, exploration
                 print("revert back to a random config in population")
                 dict_config = copy.deepcopy(population_configs[np.random.randint(0, len(population_configs))][1])
                 print(population_configs)
