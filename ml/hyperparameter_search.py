@@ -55,7 +55,7 @@ def check_roughly_monotonic(ar, limit_n=3, best=-np.inf, cmp=lambda x, y: x < y)
         if doing_well is False:
             break
     steps /= k
-    logging.warning("this config has the performance: %s" % best)
+    print("this config has the performance: %s" % best)
     return doing_well, steps, best
 
 
@@ -90,7 +90,7 @@ class MyModelCheckpoint(ModelCheckpoint):
             self.patience_ctr = 0
             self.old_best = self.best
             if self.monitor_op(self.best, self.best_of_the_bests):
-                logging.warning("best %s of the bests with %f" % (self.monitor, self.best))
+                print("best %s of the bests with %f" % (self.monitor, self.best))
                 self.best_of_the_bests = self.best
                 self.model.save_weights("data/models/best_of_the_bests.hdf5", overwrite=True)
         else:
@@ -99,12 +99,12 @@ class MyModelCheckpoint(ModelCheckpoint):
                 lr = self.model.optimizer.get_config()["lr"]
                 if lr < 0.001:
                     lr = np.random.uniform(0, 1) * 0.2
-                    logging.warning("assigning new random learning rate:%f" % lr)
+                    print("assigning new random learning rate:%f" % lr)
                     K.set_value(self.model.optimizer.lr, lr)
                 else:
                     K.set_value(self.model.optimizer.lr, lr / self.lr_divide)
                 if self.verbose > 0:
-                    logging.warning("decreasing learning rate %f to %f" % (lr, lr / self.lr_divide))
+                    print("decreasing learning rate %f to %f" % (lr, lr / self.lr_divide))
                 self.patience_ctr = 0
 
 
@@ -209,7 +209,7 @@ def random_add_cnn_to_config(config, cnn_limit, cnn_layer_n, nb_conv, nb_filters
         conv = 2 * random.randint(0, nb_conv) + 1
         pool = 2 + random.randint(0, nb_pool)
         hard_limit //= pool
-        logging.warning(hard_limit, pool, conv)
+        print(hard_limit, pool, conv)
         if np.random.uniform(0, 1) < 0.2 or hard_limit < 4:
             break
         activation_func = cnn_activation_functions[random.randint(0, len(cnn_activation_functions) - 1)]
@@ -337,8 +337,8 @@ def construct_cnn(dict_config, old_model=None, k_lim=0):
 
     :return: keras models of type Sequential
     """
-    logging.warning("constructing:")
-    logging.warning(dict_config)
+    print("constructing:")
+    print(dict_config)
     model = Sequential()
     nb_filters = dict_config["nb_filter"]
     border_mode = dict_config["border_mode"]
@@ -360,7 +360,7 @@ def construct_cnn(dict_config, old_model=None, k_lim=0):
         model.add(Convolution2D(nb_filters[i], nb_convs[i], nb_convs[i],
                                 border_mode=border_mode,
                                 input_shape=(1, img_rows, img_cols)))
-    logging.warning(1, img_rows, img_cols)
+    print(1, img_rows, img_cols)
     model.add(Activation(activation_funcs[i]))
     layer_k = 2
     for j in range(len(nb_pools)):
@@ -430,7 +430,7 @@ def init_best():
                     if len(i.strip()) > 0:
                         best_of_the_bests = float(i)
                 except ValueError:
-                    logging.warning("warning: the file data/variables/best has nan entries")
+                    print("warning: the file data/variables/best has nan entries")
     if best_of_the_bests is None:
         best_of_the_bests = -np.inf
     return best_of_the_bests
@@ -477,9 +477,9 @@ def cross_list(list1, list2):
 
 
 def cross_config(config1, config2):
-    logging.warning("before crossover:")
-    logging.warning(config1)
-    logging.warning(config2)
+    print("before crossover:")
+    print(config1)
+    print(config2)
 
     config3 = copy.deepcopy(config1)
     config4 = copy.deepcopy(config2)
@@ -523,15 +523,15 @@ def cross_config(config1, config2):
         list1 = config3["nb_conv"]
         list2 = config4["nb_conv"]
         cross_list(list1, list2)
-    logging.warning("after crossover:")
-    logging.warning(config3)
-    logging.warning(config4)
+    print("after crossover:")
+    print(config3)
+    print(config4)
     return config3, config4
 
 
 def mutate_config(config):
-    logging.warning("mutating:")
-    logging.warning(config)
+    print("mutating:")
+    print(config)
     if np.random.uniform(0, 1) < 0.5:
         config["dropout"] = misc.mutate_list(config["dropout"], low=0.075, high=0.55, replace=np.random.uniform)
     elif np.random.uniform(0, 1) < 0.1:
@@ -628,8 +628,8 @@ def duplicate_config(config):
     :param config:
     """
     # duplicate dense
-    logging.warning("duplicate config:")
-    logging.warning(config)
+    print("duplicate config:")
+    print(config)
     dense_layer_sizes = config["dense_layer_size"]
     dense_inits = config["dense_inits"]
     dense_weight_regularizers = config["dense_weight_regularizers"]
@@ -713,8 +713,8 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
             elif np.random.uniform(0, 1) < 0.2:  # duplicate
                 safe_to_use_old_weights = duplicate_config(dict_config)
             else:
-                logging.warning("add a new dense layer to old config:")
-                logging.warning(dict_config)
+                print("add a new dense layer to old config:")
+                print(dict_config)
                 if np.random.uniform(0, 1) < 0.8:  # increase depth
                     random_add_dense_to_config(dict_config, 1, hard_limit, hidden_layer_limit, inits,
                                                dense_activation_functions, regularizers, dropout_limit,
@@ -723,7 +723,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                     k_lim -= 1
                 safe_to_use_old_weights = True
             if safe_to_use_old_weights:
-                logging.warning("usig old weights")
+                print("usig old weights")
                 construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)  # TODO fix
                 # construct_cnn(dict_config)
             else:
@@ -733,7 +733,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
             dict_config = children[np.random.randint(0, 2)]
             construct_cnn(dict_config)
         if model is None:
-            logging.warning("something is wrong with the config")
+            print("something is wrong with the config")
             return
         my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
                                         reshape_output=cnn_model.reshape_str_output)
@@ -745,33 +745,34 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
         my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
                                         reshape_output=cnn_model.reshape_str_output)
         score = my_trainer.train(callbacks=[save_best, early_stop])
-        logging.warning("end of training %s" % checkpoint_name)
-        logging.warning(score)  # careful! score is an array!
+        print("end of training %s" % checkpoint_name)
+        print(score)  # careful! score is an array!
         meta_score, meta_best = score_training_history(save_best.log_history, patience=test_patience)
         if not save_best.monitor_op(save_best.best_of_the_bests, best_of_the_bests):
-            logging.warning("score of this training: %f. Best score so far: %f" % (meta_best, best_of_the_bests))
+            print("score of this training: %f. Best score so far: %f" % (meta_best, best_of_the_bests))
             if len(population_configs) < population_size:
-                logging.warning("heappush")
+                print("heappush")
                 heapq.heappush(population_configs, (meta_best, dict_config))
             elif np.random.uniform(0, 1) < 0.5:  # replace the worst config with 0.5 probability
-                logging.warning("heapreplace")
+                print("heapreplace")
                 heapq.heapreplace(population_configs, (meta_best, dict_config))
             if np.random.uniform(0, 1) < 0.5:
-                logging.warning("revert back to old config")
+                print("revert back to old config")
                 dict_config = copy.deepcopy(old_config)  # just revert back one step without doing anything
             else:  # search around another promising config
-                logging.warning("revert back to a random config in population")
+                print("revert back to a random config in population")
                 dict_config = copy.deepcopy(population_configs[np.random.randint(0, len(population_configs))][1])
-                logging.warning(population_configs)
-                logging.warning(dict_config)
+                print(population_configs)
         else:
-            logging.warning("found a good model")
+            print("found a good model")
             old_model = model
             if len(population_configs) < population_size:
                 heapq.heappush(population_configs, (meta_best, dict_config))
             else:
                 heapq.heapreplace(population_configs, (meta_best, dict_config))
             best_of_the_bests = save_best.best_of_the_bests
+        print("config selected:")
+        print(dict_config)
         meta.scores.append((meta_score, meta_best))
 
 
@@ -779,7 +780,7 @@ def random_search(meta, my_trainer, id):
     best_of_the_bests = init_best()
 
     for i in range(0, 50):
-        logging.warning("*********** batch:%d **********" % i)
+        print("*********** batch:%d **********" % i)
         training_patience = 4
         model = None
         meta.configs.append([])
@@ -791,7 +792,7 @@ def random_search(meta, my_trainer, id):
             if model is not None:
                 break
         if model is None:
-            logging.warning("couldn't find a valid random configuration for the given parameters")
+            print("couldn't find a valid random configuration for the given parameters")
             break
         pickle.dump(dict_config, open("data/models/random_cnn_config_%d_%d.p" % (i, id), "wb"))
         save_best = MyModelCheckpoint(filepath="data/models/random_cnn_config_%d_best_%d.hdf5" % (i, id),
@@ -806,5 +807,5 @@ def random_search(meta, my_trainer, id):
         meta.scores.append(score_training_history(save_best.log_history, patience=training_patience))
         with open("data/variables/best", "w") as best_file:
             best_file.write(str(best_of_the_bests))
-        logging.warning("end of training %d_%d" % (i, id))
-        logging.warning(score)
+        print("end of training %d_%d" % (i, id))
+        print(score)

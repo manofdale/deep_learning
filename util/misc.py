@@ -310,9 +310,9 @@ def filter_contours(image, input_image, invert=True, min_size=5, level=0):
     # raw_input("image")
     area = image.width * image.height
     image_mask = Image((img.width, img.height))
-    # logging.info(area)
+    # print(area)
     block_size = 2 * (int(area ** 0.7)) + 1
-    # logging.info(block_size)
+    # print(block_size)
 
     pad = min(3, 1 + min(image.width, image.height) // 150)
     it = 0
@@ -325,7 +325,7 @@ def filter_contours(image, input_image, invert=True, min_size=5, level=0):
     raw_input("h")"""
     fs = img.findBlobs()  # threshblocksize=11, threshconstant=1, minsize=min_size)
     if fs is not None:
-        logging.info(len(fs))
+        print(len(fs))
         '''blob_areas = fs.area()
         avg_blob_area = get_mean(blob_areas)
         blob_area_std = get_variance(blob_areas, avg_blob_area)
@@ -350,7 +350,7 @@ def filter_contours(image, input_image, invert=True, min_size=5, level=0):
         fs = fs.filter([(i and j) or (k and m) for i, j, k, m in
                         zip(fs.height() - fs.width() <= 0, fs.width() / fs.height() < 16, fs.height() - fs.width() > 0,
                             fs.height() / fs.width() < 8)])
-        logging.info(len(fs))
+        print(len(fs))
         # fs = smart_filter(fs)
         crops = [input_image.crop(*f.boundingBox()) for f in fs]
         edge_area_ratios = [float(crop.width * crop.height) /
@@ -385,14 +385,14 @@ def filter_contours(image, input_image, invert=True, min_size=5, level=0):
             [x, y, w, h] = f.boundingBox()
             box_area = w * h
             # img.drawRectangle(x, y, w, h, color=(0, 255, 255))
-            # logging.info(f.aspectRatio(), f.area(), w * h)
+            # print(f.aspectRatio(), f.area(), w * h)
             cropped = input_image.crop(x, y, w, h)
             blob_area = cv2.countNonZero(cropped.getGrayNumpyCv2())
             if blob_area < 10:
-                # logging.info("too small")
+                # print("too small")
                 continue
             colors = cropped.getGrayHistogramCounts(bins=4)
-            # logging.info(colors)
+            # print(colors)
             # f.crop().show()
 
             edges = cv2.countNonZero(cropped.morphGradient().getGrayNumpyCv2())
@@ -403,7 +403,7 @@ def filter_contours(image, input_image, invert=True, min_size=5, level=0):
             weird_blob = 0
             if fs2 == None:
                 img.drawRectangle(x, y, w, h, color=(127, 0, 0), width=-1)
-                # logging.info("no blobs inside")
+                # print("no blobs inside")
                 continue
             for f2 in fs2:
                 if f2.aspectRatio() > 15:
@@ -441,7 +441,7 @@ def filter_contours(image, input_image, invert=True, min_size=5, level=0):
                     3.8 * (f.perimeter() / 6.284) ** 2 <= blob_area, f.onImageEdge(),
                     (colors[0][0] + colors[1][0]) < 1.2 * sum(
                         zip(*colors[2:])[0]))
-                logging.info(filter_str)
+                print(filter_str)
                 img.drawText(filter_str, x, y)
                 img.show()
                 # raw_input("d")
@@ -463,7 +463,7 @@ def filter_contours(image, input_image, invert=True, min_size=5, level=0):
                                 f.onImageEdge(), colors[0][0] > 7 * colors[1][0],
                                 colors[0][0] + colors[1][0] < 1.2 * sum(
                                         zip(*colors[2:])[0])), x, y)
-                    logging.info("%d%d%d%d%d%d%d%d%d%d%d%d%d%d" % (weird_blob > len(fs2) / 2, cropped.width > img.width * 0.8,
+                    print("%d%d%d%d%d%d%d%d%d%d%d%d%d%d" % (weird_blob > len(fs2) / 2, cropped.width > img.width * 0.8,
                                                             cropped.height > img.height * 0.8,
                                                             edges < rec_perimeter,
                                                             edges > blob_area * 2,
@@ -501,7 +501,7 @@ def filter_contours(image, input_image, invert=True, min_size=5, level=0):
             #raw_input("h")
             contours_to_boxes(find_contours(cropped.binarize().invert()), rectangles=rec, max_width=cropped.width,
                                     max_height=cropped.height, x_pad=i, y_pad=j)
-    logging.info(rec)
+    print(rec)
     for box in rec:
         img.drawRectangle(*box)
     img.show()"""
@@ -565,9 +565,9 @@ def morph_swt(swt):
     # img.show()
     area = image.width * image.height
     image_mask = Image((img.width, img.height))
-    # logging.info(area)
+    # print(area)
     block_size = 2 * (int(area ** 0.7)) + 1
-    # logging.info(block_size)
+    # print(block_size)
 
     pad = min(3, 1 + min(image.width, image.height) // 150)
     it = 0
@@ -614,10 +614,10 @@ def morph_swt(swt):
             cropped = swt.crop(x, y, w, h)
             blob_area = cv2.countNonZero(cropped.getGrayNumpyCv2())
             if blob_area < 10:
-                # logging.info("too small")
+                # print("too small")
                 continue
             colors = cropped.getGrayHistogramCounts(bins=4)
-            # logging.info(colors)
+            # print(colors)
 
             edges = cv2.countNonZero(cropped.morphGradient().getGrayNumpyCv2())
             edge_area_ratio = float(blob_area) / (edges + 1)
@@ -628,7 +628,7 @@ def morph_swt(swt):
             weird_blob = 0
             if fs2 == None:
                 # img.drawRectangle(x, y, w, h, color=(127, 0, 0), width=-1)
-                # logging.info("no blobs inside")
+                # print("no blobs inside")
                 continue
             for f2 in fs2:
                 if f2.aspectRatio() < 0.1 or f2.aspectRatio() > 4:
@@ -647,7 +647,7 @@ def morph_swt(swt):
                 img.drawRectangle(x, y, w, h, color=(127, 0, 0), width=2)
                 x1 = max(0, x - 8 * pad)
                 y1 = max(0, y - pad)
-                # logging.info("image_mask%d,%d,%d,%d" % (x1, y1, min(w + 10 * pad, image_mask.width - x1),
+                # print("image_mask%d,%d,%d,%d" % (x1, y1, min(w + 10 * pad, image_mask.width - x1),
                 #                                 min(h + 2 * pad, image_mask.height - y1)))
                 image_mask.drawRectangle(x1, y1, min(w + 16 * pad, image_mask.width - x1),
                                          min(h + 2 * pad, image_mask.height - y1), color=(255, 255, 255), width=-1)
@@ -787,7 +787,7 @@ def xy_cut(x, y, width, height, image, nump, horizontal=True):
     if horizontal:
         hor = [sum([nump[x + i, y + j][0] for i in range(0, width)]) for j in
                range(0, height)]  # [sum(nump[x:x + width, y + i][0]) for i in range(0, height)]
-        # logging.info(hor)
+        # print(hor)
         aspect = float(height) / width
         ys = find_cut_indexes(hor, width * aspect * 20)
         prev_y = y
@@ -808,7 +808,7 @@ def xy_cut(x, y, width, height, image, nump, horizontal=True):
             if new_x - (prev_x - x) < 5:
                 continue
             image.drawLine((new_x + x, y), (new_x + x, y + height - 1), color=(0, 255, 0), thickness=3)
-            # logging.info(prev_x, y, new_x, height)
+            # print(prev_x, y, new_x, height)
             xy_cut(prev_x, y, new_x - (prev_x - x), height, image, nump, horizontal=True)
             prev_x = x + new_x
         if prev_x != x:
@@ -851,7 +851,7 @@ def csv_to_img(csv_name, label_count=1):
     with open(csv_name, "r") as csv_file:
         lines = [img for img in csv_file][1:]
         assert (len(lines) > 0)
-        # logging.info(len(lines[0]) - label_count)
+        # print(len(lines[0]) - label_count)
         height = width = sqrt(len(lines[0].strip().split(",")) - label_count)
         for img in lines:
             # image = img_from_csv_line(img, label_count, height, width)
@@ -1030,7 +1030,7 @@ def init_mapper(mapper):
     i = 1
     for k in string.digits + string.ascii_letters:
         # reduce classes
-        # logging.info(k,i)
+        # print(k,i)
         if k == 'O' or k == 'o':
             mapper[k] = '1'
         elif k == 'i' or k == 'l' or k == 'I':
@@ -1180,9 +1180,9 @@ def find_rectangle_centroid(rec):
 
 def horizontal_rotate(image):
     angle, new_image = smart_rotate(image)
-    logging.info(image.width, image.height)
+    print(image.width, image.height)
     new_image = crop_padding(new_image)
-    logging.info(new_image.width, new_image.height, angle)
+    print(new_image.width, new_image.height, angle)
     new_image.show()
     # raw_input("smart_rotate_crop")
     if new_image.width * 1.4 < image.width:  # vertical
@@ -1326,13 +1326,13 @@ def find_between_labels(text, first_label, last_label, scheme='01', around_first
 def list3d_to_df(list3d):
     """[[],..],[[],..]"""
     import pandas as pd
-    logging.info(pd.DataFrame(data=list3d))
+    print(pd.DataFrame(data=list3d))
 
 
 def get_all_files(input_folder, check=lambda f: f[-4:] == '.mp4'):
     import glob
     files = glob.glob(input_folder)
-    logging.info(files)
+    print(files)
     return [f for f in files if len(f) > 4 and check(f)]
 
 
@@ -1343,11 +1343,11 @@ def move_files(folder_dict, path):
     """
     import shutil
     for key, val in folder_dict.items():
-        logging.info(key)
+        print(key)
         if not os.path.isdir(path + key):
             os.mkdir(path + key)
         for i in val:
-            logging.info(i, path + key + "/" + get_file_name(i, no_extension=False))
+            print(i, path + key + "/" + get_file_name(i, no_extension=False))
             shutil.move(i, path + key + "/" + get_file_name(i, no_extension=False))
 
 
@@ -1377,9 +1377,9 @@ def f_or_default(arg, default=None, func=lambda x: x[0](*x[1:])):
 
 def mutate_list(random_vals, low=0, high=0, replace=np.random.uniform):
     mutate_index = np.random.randint(0, len(random_vals))
-    logging.info("old list:")
-    logging.info(random_vals)
+    print("old list:")
+    print(random_vals)
     random_vals[mutate_index] = replace(low=low, high=high)
-    logging.info("mutated into:")
-    logging.info(random_vals)
+    print("mutated into:")
+    print(random_vals)
     return random_vals
