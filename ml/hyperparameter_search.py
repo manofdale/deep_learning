@@ -751,12 +751,16 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
         if not save_best.monitor_op(save_best.best_of_the_bests, best_of_the_bests):
             print("score of this training: %f. Best score so far: %f" % (meta_best, best_of_the_bests))
             if len(population_configs) < population_size:
+                print("heappush")
                 heapq.heappush(population_configs, (score, dict_config))
             elif np.random.uniform(0, 1) < 0.5:  # replace the worst config with 0.5 probability
+                print("heapreplace")
                 heapq.heapreplace(population_configs, (score, dict_config))
             if np.random.uniform(0, 1) < 0.5:
+                print("revert back to old config")
                 dict_config = copy.deepcopy(old_config)  # just revert back one step without doing anything
             else:  # search around another promising config
+                print("revert back to a random config in population")
                 dict_config = copy.deepcopy(population_configs[np.random.randint(0, len(population_configs))][1])
         else:
             print("found a good model")
