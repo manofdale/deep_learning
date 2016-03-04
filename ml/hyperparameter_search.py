@@ -646,7 +646,7 @@ def duplicate_config(config):
     if np.random.uniform(0, 1) < 0.5:  # duplicate some convolution layers
         p = np.random.uniform(0, len(nb_convs))
         p -= len(nb_convs)  # TODO refactor config and separate cnn and dense attributes completely
-        cnn_dropouts = config[  "dropout"][0:len(nb_pools)]
+        cnn_dropouts = config["dropout"][0:len(nb_pools)]
         cnn_nb_repeats = config["nb_repeat"][0:len(nb_pools)]
         cnn_activations = config["activation"][0:len(nb_pools) + 1]
         config["nb_conv"] += nb_convs[p:]
@@ -655,7 +655,7 @@ def duplicate_config(config):
         p = max(-len(nb_pools), p)
         config["nb_pool"] += nb_pools[p:]
         config["nb_repeat"] = cnn_nb_repeats + cnn_nb_repeats[p:] + config["nb_repeat"][len(nb_pools):]
-        config[  "dropout"] = cnn_dropouts + cnn_dropouts[p:] + config[  "dropout"][len(nb_pools):]
+        config["dropout"] = cnn_dropouts + cnn_dropouts[p:] + config["dropout"][len(nb_pools):]
         return False
     else:  # duplicate some dense layers
         p = np.random.uniform(0, len(dense_layer_sizes))
@@ -671,6 +671,7 @@ def duplicate_config(config):
 
 
 def search_around_promising(meta, my_trainer, population_configs, best_score, checkpoint_name, n_itr=100):
+    # TODO refactor
     population_size = 100
     config = population_configs[2][1]  # start with three configs in the population, the last one being the best
     itr = 0
@@ -688,7 +689,8 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
     dict_config = copy.deepcopy(config)  # initial config
 
     best_of_the_bests = best_score
-    test_patience = 2
+    test_patience = 6
+    safe_to_use_old_weights = True
     while itr < n_itr:
         itr += 1
         old_config = copy.deepcopy(dict_config)
@@ -697,9 +699,11 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
             meta.configs.append(dict_config)
             temp_config = copy.deepcopy(dict_config)
             while str(temp_config) == str(dict_config):
-                safe_to_use_old_weights = mutate_config(dict_config)
+                safe = mutate_config(dict_config)
+            safe_to_use_old_weights = safe_to_use_old_weights and safe
             model = construct_cnn(dict_config)
-            if safe_to_use_old_weights and os.path.isfile("data/models/promising_cnn_config_test_%s_%d_incremental.hdf5" % (checkpoint_name, itr)):
+            if safe_to_use_old_weights and os.path.isfile(
+                            "data/models/promising_cnn_config_test_%s_%d_incremental.hdf5" % (checkpoint_name, itr)):
                 model.load_weights(
                     "data/models/promising_cnn_config_test_%s_%d_incremental.hdf5" % (checkpoint_name, itr))
                 itr += 1  # skip the first model
@@ -708,10 +712,12 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
             if np.random.uniform(0, 1) < 0.5:  # mutate
                 temp_config = copy.deepcopy(dict_config)
                 while str(temp_config) == str(dict_config):
-                    safe_to_use_old_weights = mutate_config(dict_config)
+                    safe = mutate_config(dict_config)
+                safe_to_use_old_weights = safe_to_use_old_weights and safe
 
             elif np.random.uniform(0, 1) < 0.2:  # duplicate
-                safe_to_use_old_weights = duplicate_config(dict_config)
+                safe = duplicate_config(dict_config)
+                safe_to_use_old_weights = safe_to_use_old_weights and safe
             else:
                 print("add a new dense layer to old config:")
                 print(dict_config)
@@ -721,7 +727,6 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                                                activity_regularizers)
                 else:  # decrease depth
                     k_lim -= 1
-                safe_to_use_old_weights = True
             if safe_to_use_old_weights:
                 print("usig old weights")
                 construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)  # TODO implement tests
@@ -758,14 +763,17 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                 heapq.heapreplace(population_configs, (meta_best, dict_config))
             if np.random.uniform(0, 1) < 0.2:  # exploitation
                 print("revert back to old config")
+                safe_to_use_old_weights = True
                 dict_config = copy.deepcopy(old_config)  # just revert back one step without doing anything
             else:  # search around another promising config, exploration
                 print("revert back to a random config in population")
+                safe_to_use_old_weights = False
                 dict_config = copy.deepcopy(population_configs[np.random.randint(0, len(population_configs))][1])
                 print(population_configs)
         else:
             print("found a good model")
             old_model = model
+            safe_to_use_old_weights = True
             if len(population_configs) < population_size:
                 heapq.heappush(population_configs, (meta_best, dict_config))
             else:
