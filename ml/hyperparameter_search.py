@@ -721,6 +721,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
             else:
                 print("add a new dense layer to old config:")
                 print(dict_config)
+                k_lim = find_number_of_layers(dict_config) - 2
                 if np.random.uniform(0, 1) < 0.8:  # increase depth
                     random_add_dense_to_config(dict_config, 1, hard_limit, hidden_layer_limit, inits,
                                                dense_activation_functions, regularizers, dropout_limit,
