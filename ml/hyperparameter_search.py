@@ -646,7 +646,7 @@ def duplicate_config(config):
     if np.random.uniform(0, 1) < 0.5:  # duplicate some convolution layers
         p = np.random.uniform(0, len(nb_convs))
         p -= len(nb_convs)  # TODO refactor config and separate cnn and dense attributes completely
-        cnn_dropouts = config[ "dropout".][0:len(nb_pools)]
+        cnn_dropouts = config[  "dropout"][0:len(nb_pools)]
         cnn_nb_repeats = config["nb_repeat"][0:len(nb_pools)]
         cnn_activations = config["activation"][0:len(nb_pools) + 1]
         config["nb_conv"] += nb_convs[p:]
@@ -655,7 +655,7 @@ def duplicate_config(config):
         p = max(-len(nb_pools), p)
         config["nb_pool"] += nb_pools[p:]
         config["nb_repeat"] = cnn_nb_repeats + cnn_nb_repeats[p:] + config["nb_repeat"][len(nb_pools):]
-        config[ "dropout".] = cnn_dropouts + cnn_dropouts[p:] + config[ "dropout".][len(nb_pools):]
+        config[  "dropout"] = cnn_dropouts + cnn_dropouts[p:] + config[  "dropout"][len(nb_pools):]
         return False
     else:  # duplicate some dense layers
         p = np.random.uniform(0, len(dense_layer_sizes))
