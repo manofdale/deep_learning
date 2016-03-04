@@ -456,8 +456,8 @@ def cross_list(list1, list2):
     min_len = min(len(list1), len(list2))
     if min_len == 0:  # nothing to do
         return
-    pivot1 = np.random.uniform(0, min_len - 1)
-    pivot2 = np.random.uniform(pivot1, min_len)
+    pivot1 = np.random.randint(0, min_len - 1)
+    pivot2 = np.random.randint(pivot1, min_len)
     crossover(list1, list2, pivot1, pivot2)
 
 
@@ -644,8 +644,9 @@ def duplicate_config(config):
     dropouts = config["dropout"]
     activations = config["activation"]
     if np.random.uniform(0, 1) < 0.5:  # duplicate some convolution layers
-        p = np.random.uniform(0, len(nb_convs))
-        p -= len(nb_convs)  # TODO refactor config and separate cnn and dense attributes completely
+        p = np.random.randint(0, len(nb_convs))
+        p -= len(nb_convs)
+        print("last %d elements will be duplicated\n"%(-p))
         cnn_dropouts = config["dropout"][0:len(nb_pools)]
         cnn_nb_repeats = config["nb_repeat"][0:len(nb_pools)]
         cnn_activations = config["activation"][0:len(nb_pools) + 1]
@@ -658,7 +659,7 @@ def duplicate_config(config):
         config["dropout"] = cnn_dropouts + cnn_dropouts[p:] + config["dropout"][len(nb_pools):]
         return False
     else:  # duplicate some dense layers
-        p = np.random.uniform(0, len(dense_layer_sizes))
+        p = np.random.randint(0, len(dense_layer_sizes))
         p -= len(dense_layer_sizes)  # duplicate last p elements, e.g dense_inits[p:]
         config["dense_layer_size"] += dense_layer_sizes[p:]
         config["dense_inits"] += dense_inits[p:]
