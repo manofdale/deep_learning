@@ -695,8 +695,11 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
 
         if old_model is None:
             meta.configs.append(dict_config)
+            temp_config = copy.deepcopy(dict_config)
+            while str(temp_config) == str(dict_config):
+                safe_to_use_old_weights = mutate_config(dict_config)
             model = construct_cnn(dict_config)
-            if os.path.isfile("data/models/promising_cnn_config_test_%s_%d_incremental.hdf5" % (checkpoint_name, itr)):
+            if safe_to_use_old_weights and os.path.isfile("data/models/promising_cnn_config_test_%s_%d_incremental.hdf5" % (checkpoint_name, itr)):
                 model.load_weights(
                     "data/models/promising_cnn_config_test_%s_%d_incremental.hdf5" % (checkpoint_name, itr))
                 itr += 1  # skip the first model
