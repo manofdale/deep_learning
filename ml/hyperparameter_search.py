@@ -762,6 +762,8 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
             else:  # search around another promising config
                 print("revert back to a random config in population")
                 dict_config = copy.deepcopy(population_configs[np.random.randint(0, len(population_configs))][1])
+                print(population_configs)
+                print(dict_config)
         else:
             print("found a good model")
             old_model = model
