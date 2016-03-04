@@ -768,9 +768,9 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
             logging.warning("found a good model")
             old_model = model
             if len(population_configs) < population_size:
-                heapq.heappush(population_configs, (score, dict_config))
+                heapq.heappush(population_configs, (meta_best, dict_config))
             else:
-                heapq.heapreplace(population_configs, (score, dict_config))
+                heapq.heapreplace(population_configs, (meta_best, dict_config))
             best_of_the_bests = save_best.best_of_the_bests
         meta.scores.append((meta_score, meta_best))
 
