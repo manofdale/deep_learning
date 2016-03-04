@@ -660,6 +660,7 @@ def duplicate_config(config):
     else:  # duplicate some dense layers
         p = np.random.uniform(0, len(dense_layer_sizes))
         p -= len(dense_layer_sizes)  # duplicate last p elements, e.g dense_inits[p:]
+        config["dense_layer_size"] += dense_layer_sizes[p:]
         config["dense_inits"] += dense_inits[p:]
         config["dense_weight_regularizers"] += dense_weight_regularizers[p:]
         config["dense_activity_regularizers"] += dense_activity_regularizers[p:]
@@ -727,7 +728,15 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                                                dense_activation_functions, regularizers, dropout_limit,
                                                activity_regularizers)
                 else:  # decrease depth
-                    k_lim -= 1
+                    dict_config["dense_layer_size"] = dict_config["dense_layer_size"][0:-1]
+                    dict_config["nb_repeat"] = dict_config["nb_repeat"][0:-1]
+                    dict_config["dropout"] = dict_config["dropout"][0:-1]
+                    dict_config["activation"] = dict_config["activation"][0:-1]
+                    dict_config["dense_weight_regularizers"] = dict_config["dense_weight_regularizers"][0:-1]
+                    dict_config["dense_activity_regularizers"] = dict_config["dense_activity_regularizers"][0:-1]
+                    dict_config["dense_inits"] = dict_config["dense_inits"][0:-1]
+                    dict_config["bias_regularizers"] = dict_config["bias_regularizers"][0:-1]
+                    k_lim -= 3
             if safe_to_use_old_weights:
                 print("usig old weights")
                 construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)  # TODO implement tests
