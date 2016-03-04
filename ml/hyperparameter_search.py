@@ -110,7 +110,7 @@ class MyModelCheckpoint(ModelCheckpoint):
 
 def add_convolution(model, nb_filters, nb_conv, nb_pool, dropout_r, activation_func, r, old_model=None, k=0, k_lim=0):
     for i in range(r):  # no more than limit
-        if old_model is not None and k + i < k_lim:
+        if old_model is not None and k + 2*i < k_lim:
             model.add(Convolution2D(nb_filters, nb_conv, nb_conv, weights=old_model.layers[k + i].get_weights()))
         else:
             model.add(Convolution2D(nb_filters, nb_conv, nb_conv))
@@ -137,7 +137,7 @@ def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r, ac
     :param k_lim: after current layer number k+i >= k_lim, do not init with old weights
     """
     for i in range(r):
-        if old_model is not None and k + i < k_lim:
+        if old_model is not None and k + i*3 < k_lim:
             model.add(Dense(hidden_layer_size, weights=old_model.layers[k + i].get_weights(),
                             W_regularizer=f_or_default(weight_r),
                             activity_regularizer=f_or_default(act_r), b_regularizer=f_or_default(b_r)))
