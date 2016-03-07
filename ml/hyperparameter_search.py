@@ -110,7 +110,7 @@ class MyModelCheckpoint(ModelCheckpoint):
 
 def add_convolution(model, nb_filters, nb_conv, nb_pool, dropout_r, activation_func, r, old_model=None, k=0, k_lim=0):
     for i in range(r):  # no more than limit
-        if old_model is not None and k + 2*i < k_lim:
+        if old_model is not None and k + 2 * i < k_lim:
             model.add(Convolution2D(nb_filters, nb_conv, nb_conv, weights=old_model.layers[k + i].get_weights()))
         else:
             model.add(Convolution2D(nb_filters, nb_conv, nb_conv))
@@ -137,7 +137,7 @@ def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r, ac
     :param k_lim: after current layer number k+i >= k_lim, do not init with old weights
     """
     for i in range(r):
-        if old_model is not None and k + i*3 < k_lim:
+        if old_model is not None and k + i * 3 < k_lim:
             model.add(Dense(hidden_layer_size, weights=old_model.layers[k + i].get_weights(),
                             W_regularizer=f_or_default(weight_r),
                             activity_regularizer=f_or_default(act_r), b_regularizer=f_or_default(b_r)))
@@ -236,8 +236,10 @@ def random_add_dense_to_config(config, dense_limit, hard_limit, hidden_layer_lim
         layer_limit = random.randint(2, 4)
         r = 1 + random.randint(0, layer_limit - 1)
         init = inits[random.randint(0, len(inits) - 1)]
-        config["dense_inits"].append(init)
         activation_func = dense_activation_functions[random.randint(0, len(dense_activation_functions) - 1)]
+        config["dense_inits"].append(init)
+        config["dropout"].append(dropout_rate)
+        config["activation"].append(activation_func)
         config["nb_repeat"].append(r)
         config["dense_layer_size"].append(hidden_layer_size)
         if np.random.uniform(0, 1) < 0.1:
@@ -267,8 +269,6 @@ def random_add_dense_to_config(config, dense_limit, hard_limit, hidden_layer_lim
                 config["dense_activity_regularizers"].append((reg, np.random.uniform(0, 1) * 0.1))
         else:
             config["dense_activity_regularizers"].append(None)
-        config["dropout"].append(dropout_rate)
-        config["activation"].append(activation_func)
 
 
 def finalize_config(config, nb_classes, final_activation, loss_functions, lr_limit, momentum_limit):
@@ -646,7 +646,7 @@ def duplicate_config(config):
     if np.random.uniform(0, 1) < 0.5:  # duplicate some convolution layers
         p = np.random.randint(0, len(nb_convs))
         p -= len(nb_convs)
-        print("last %d elements will be duplicated\n"%(-p))
+        print("last %d elements will be duplicated\n" % (-p))
         cnn_dropouts = config["dropout"][0:len(nb_pools)]
         cnn_nb_repeats = config["nb_repeat"][0:len(nb_pools)]
         cnn_activations = config["activation"][0:len(nb_pools) + 1]
@@ -688,6 +688,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
     activity_regularizers = ['activity_l1', 'activity_l2', 'activity_l1l2', 'activity_l2',
                              'activity_l2', ]
     old_model = None
+    good_old_config = None
     dict_config = copy.deepcopy(config)  # initial config
 
     best_of_the_bests = best_score
@@ -695,7 +696,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
     safe_to_use_old_weights = True
     while itr < n_itr:
         itr += 1
-        old_config = copy.deepcopy(dict_config)
+        prev_config = copy.deepcopy(dict_config)
 
         if old_model is None:
             meta.configs.append(dict_config)
@@ -710,7 +711,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                     "data/models/promising_cnn_config_test_%s_%d_incremental.hdf5" % (checkpoint_name, itr))
                 itr += 1  # skip the first model
         elif np.random.uniform(0, 1) < 0.9:  # else, crossover
-            k_lim = find_number_of_layers(old_config) - 2  # discard the final dense+activation layer and insert new
+            k_lim = find_number_of_layers(prev_config) - 2  # discard the final dense+activation layer and insert new
             if np.random.uniform(0, 1) < 0.5:  # mutate
                 temp_config = copy.deepcopy(dict_config)
                 while str(temp_config) == str(dict_config):
@@ -738,16 +739,16 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                     dict_config["dense_inits"] = dict_config["dense_inits"][0:-1]
                     dict_config["bias_regularizers"] = dict_config["bias_regularizers"][0:-1]
                     k_lim -= 3
-            if safe_to_use_old_weights:
+            if safe_to_use_old_weights and old_model is not None:
                 print("usig old weights")
                 model = construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)  # TODO implement tests
                 # model=construct_cnn(dict_config)
             else:
-                model=construct_cnn(dict_config)
+                model = construct_cnn(dict_config)
         else:  # crossover with other promising models, pick a random mate from the population
             children = cross_config(dict_config, population_configs[np.random.randint(0, len(population_configs))][1])
             dict_config = children[np.random.randint(0, 2)]
-            model=construct_cnn(dict_config)
+            model = construct_cnn(dict_config)
         if model is None:
             print("something is wrong with the config")
             return
@@ -775,15 +776,20 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
             if np.random.uniform(0, 1) < 0.2:  # exploitation
                 print("revert back to old config")
                 safe_to_use_old_weights = True
-                dict_config = copy.deepcopy(old_config)  # just revert back one step without doing anything
+                if good_old_config is not None:
+                    dict_config = copy.deepcopy(good_old_config)  # just revert back one step without doing anything
+                    model = copy.deepcopy(old_model)
             else:  # search around another promising config, exploration
                 print("revert back to a random config in population")
                 safe_to_use_old_weights = False
-                dict_config = copy.deepcopy(population_configs[np.random.randint(0, len(population_configs))][1])
+                dict_config = copy.deepcopy(population_configs[
+                                                np.random.randint(np.random.randint(1, len(population_configs) - 1),
+                                                                  len(population_configs))][1])
                 print(population_configs)
         else:
             print("found a good model")
             old_model = model
+            good_old_config = dict_config
             safe_to_use_old_weights = True
             if len(population_configs) < population_size:
                 heapq.heappush(population_configs, (meta_best, dict_config))
