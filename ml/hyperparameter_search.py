@@ -651,7 +651,7 @@ def duplicate_config(config):
         cnn_nb_repeats = config["nb_repeat"][0:len(nb_pools)]
         cnn_activations = config["activation"][0:len(nb_pools) + 1]
         config["nb_conv"] += nb_convs[p:]
-        config["nb_filters"] += nb_filters[p:]
+        config["nb_filter"] += nb_filters[p:]
         config["activation"] = cnn_activations + cnn_activations[p:] + config["activation"][len(nb_pools) + 1:]
         p = max(-len(nb_pools), p)
         config["nb_pool"] += nb_pools[p:]
