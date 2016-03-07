@@ -29,6 +29,32 @@ class CumulativeSum:
         return self.sum
 
 
+def enum_to_str_list(enum_string):
+    """convert an enum string key = val,\n, key2=val2, \n.. to [val, val1, ..]
+
+    >>> enum_to_str(enum_string) # a = 0, b=0,
+    '["a_or_b", "c","d"]'
+    """
+    kv_list = []
+    for i in enum_string.strip().split("\n"):
+        if i == "":
+            continue
+        k, v = i.strip().split("=")
+        if v[-1] == ",":
+            v = v[:-1]
+        kv_list.append((int(v), k.strip()))
+    prev = -1
+    prev_k = ""
+    str_list = []
+    for v, k in sorted(kv_list):
+        if prev == v:
+            str_list[v] = str_list[v] + "_or_" + k
+        else:
+            prev = v
+            str_list.append(k)
+    return str_list
+
+
 def gradient_1d(function_points):
     if len(function_points) < 2:
         return function_points

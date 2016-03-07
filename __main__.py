@@ -41,7 +41,7 @@ dict_config2 = {'bias_regularizers': [None, None, None, None], 'nb_pool': [3], '
                 'img_rows': 28, 'final_activation': 'softmax'}
 meta = Pack()
 population_configs = [(0.41, dict_config0), (0.48151, dict_config2), (0.51916, dict_config)]
-hyperparameter_search.search_around_promising(meta, trainer, population_configs, 0.4, "51916")
+hyperparameter_search.search_around_promising(meta, trainer, population_configs, 0.01, "51916")
 print(population_configs)
 with open("data/dataset/meta_near_5196_incremental", "a") as meta_file:
     for s, c in zip(meta.scores, meta.configs):

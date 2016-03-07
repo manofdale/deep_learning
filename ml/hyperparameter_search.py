@@ -339,6 +339,8 @@ def construct_cnn(dict_config, old_model=None, k_lim=0):
     """
     print("constructing:")
     print(dict_config)
+    if k_lim>0:
+        print("k_lim:%d"%k_lim)
     model = Sequential()
     nb_filters = dict_config["nb_filter"]
     border_mode = dict_config["border_mode"]
@@ -692,7 +694,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
     dict_config = copy.deepcopy(config)  # initial config
 
     best_of_the_bests = best_score
-    test_patience = 2
+    test_patience = 1
     safe_to_use_old_weights = True
     while itr < n_itr:
         itr += 1
