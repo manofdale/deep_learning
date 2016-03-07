@@ -8,7 +8,7 @@ class Pack:
 
 
 trainer = hyperparameter_search.init_trainer()
-trainer.training_parameters.nb_epoch = 40
+trainer.training_parameters.nb_epoch = 100
 dict_config0 = {'bias_regularizers': [None, None, None], 'nb_pool': [2, 2], 'nb_conv': [3, 1, 3],
                 'final_activation': 'softmax', 'img_cols': 28, 'sgd_decay': 2.255626836893722e-06,
                 'dense_weight_regularizers': [None, None, None], 'sgd_momentum': 0.43162749108853093,
@@ -39,14 +39,25 @@ dict_config2 = {'bias_regularizers': [None, None, None, None], 'nb_pool': [3], '
                 'dropout': [0.05581567092442845, 0.246871561047429298, 0.0575979640541265788, 0.4836863105510306,
                             0.04954334377523167], 'dense_activity_regularizers': [None, None, None, None],
                 'img_rows': 28, 'final_activation': 'softmax'}
-meta = Pack()
-population_configs = [(0.41, dict_config0), (0.48151, dict_config2), (0.51916, dict_config)]
-hyperparameter_search.search_around_promising(meta, trainer, population_configs, 0.01, "51916")
-print(population_configs)
-with open("data/dataset/meta_near_5196_incremental", "a") as meta_file:
-    for s, c in zip(meta.scores, meta.configs):
-        meta_file.write(str(s) + ":")
-        meta_file.write(str(c) + "\n")
+
+for i in range(100):
+    meta = Pack()
+    population_configs = [(0.41, dict_config0), (0.48151, dict_config2), (0.51916, dict_config)]
+    try:
+        hyperparameter_search.search_around_promising(meta, trainer, population_configs, 0.01, "51916")
+    except (KeyboardInterrupt, SystemExit):
+        raise
+    except Exception as e:
+        print("this config caused an exception:")
+        print(e)
+        import traceback
+        print(traceback.format_exc())
+    finally:
+        print(population_configs)
+        with open("data/dataset/meta_near_5196_incremental", "a") as meta_file:
+            for s, c in zip(meta.scores, meta.configs):
+                meta_file.write(str(s) + ":")
+                meta_file.write(str(c) + "\n")
 trainer.training_parameters.nb_epoch = 50
 raw_input("tests ended, press enter to continue")
 for i in range(2000):

@@ -110,7 +110,7 @@ class MyModelCheckpoint(ModelCheckpoint):
 
 def add_convolution(model, nb_filters, nb_conv, nb_pool, dropout_r, activation_func, r, old_model=None, k=0, k_lim=0):
     for i in range(r):  # no more than limit
-        if old_model is not None and k + 2 * (i+1) <= k_lim:
+        if old_model is not None and k + 2 * (i + 1) <= k_lim:
             model.add(Convolution2D(nb_filters, nb_conv, nb_conv, weights=old_model.layers[k + i].get_weights()))
         else:
             model.add(Convolution2D(nb_filters, nb_conv, nb_conv))
@@ -137,7 +137,7 @@ def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r, ac
     :param k_lim: after current layer number k+i >= k_lim, do not init with old weights
     """
     for i in range(r):
-        if old_model is not None and k + (i+1) * 3 <= k_lim:
+        if old_model is not None and k + (i + 1) * 3 <= k_lim:
             model.add(Dense(hidden_layer_size, weights=old_model.layers[k + i].get_weights(),
                             W_regularizer=f_or_default(weight_r),
                             activity_regularizer=f_or_default(act_r), b_regularizer=f_or_default(b_r)))
@@ -339,8 +339,8 @@ def construct_cnn(dict_config, old_model=None, k_lim=0):
     """
     print("constructing:")
     print(dict_config)
-    if k_lim>0:
-        print("k_lim:%d"%k_lim)
+    if k_lim > 0:
+        print("k_lim:%d" % k_lim)
     model = Sequential()
     nb_filters = dict_config["nb_filter"]
     border_mode = dict_config["border_mode"]
@@ -694,7 +694,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
     dict_config = copy.deepcopy(config)  # initial config
 
     best_of_the_bests = best_score
-    test_patience = 1
+    test_patience = 8
     safe_to_use_old_weights = True
     while itr < n_itr:
         itr += 1
@@ -744,9 +744,9 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                     dict_config["bias_regularizers"] = dict_config["bias_regularizers"][0:-1]
                     k_lim -= 3
             if safe_to_use_old_weights and old_model is not None:
-                print("usig old weights")
-                model = construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)  # TODO implement tests
-                # model=construct_cnn(dict_config)
+                print("skip using old weights for now")
+                # model = construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)  # TODO implement tests
+                model = construct_cnn(dict_config)
             else:
                 model = construct_cnn(dict_config)
         else:  # crossover with other promising models, pick a random mate from the population
@@ -782,7 +782,8 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                 safe_to_use_old_weights = True
                 if good_old_config is not None:
                     dict_config = copy.deepcopy(good_old_config)  # just revert back one step without doing anything
-                    model = copy.deepcopy(old_model)
+                    model = construct_cnn(dict_config)
+                    model.load_weights("data/models/promising_cnn_config_test_%s_good_model.hdf5" % checkpoint_name)
             else:  # search around another promising config, exploration
                 print("revert back to a random config in population")
                 safe_to_use_old_weights = False
@@ -792,7 +793,8 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                 print(population_configs)
         else:
             print("found a good model")
-            old_model = model
+            model.save_weights("data/models/promising_cnn_config_test_%s_good_model.hdf5" % checkpoint_name,
+                               overwrite=True)
             good_old_config = dict_config
             safe_to_use_old_weights = True
             if len(population_configs) < population_size:
