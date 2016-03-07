@@ -110,7 +110,7 @@ class MyModelCheckpoint(ModelCheckpoint):
 
 def add_convolution(model, nb_filters, nb_conv, nb_pool, dropout_r, activation_func, r, old_model=None, k=0, k_lim=0):
     for i in range(r):  # no more than limit
-        if old_model is not None and k + 2 * i < k_lim:
+        if old_model is not None and k + 2 * (i+1) <= k_lim:
             model.add(Convolution2D(nb_filters, nb_conv, nb_conv, weights=old_model.layers[k + i].get_weights()))
         else:
             model.add(Convolution2D(nb_filters, nb_conv, nb_conv))
@@ -137,7 +137,7 @@ def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r, ac
     :param k_lim: after current layer number k+i >= k_lim, do not init with old weights
     """
     for i in range(r):
-        if old_model is not None and k + i * 3 < k_lim:
+        if old_model is not None and k + (i+1) * 3 <= k_lim:
             model.add(Dense(hidden_layer_size, weights=old_model.layers[k + i].get_weights(),
                             W_regularizer=f_or_default(weight_r),
                             activity_regularizer=f_or_default(act_r), b_regularizer=f_or_default(b_r)))
@@ -692,7 +692,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
     dict_config = copy.deepcopy(config)  # initial config
 
     best_of_the_bests = best_score
-    test_patience = 6
+    test_patience = 2
     safe_to_use_old_weights = True
     while itr < n_itr:
         itr += 1
@@ -722,14 +722,16 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                 safe = duplicate_config(dict_config)
                 safe_to_use_old_weights = safe_to_use_old_weights and safe
             else:
-                print("add a new dense layer to old config:")
-                print(dict_config)
                 k_lim = find_number_of_layers(dict_config) - 2
                 if np.random.uniform(0, 1) < 0.8:  # increase depth
+                    print("add a new dense layer to old config:")
+                    print(dict_config)
                     random_add_dense_to_config(dict_config, 1, hard_limit, hidden_layer_limit, inits,
                                                dense_activation_functions, regularizers, dropout_limit,
                                                activity_regularizers)
                 else:  # decrease depth
+                    print("remove a new dense layer from old config:")
+                    print(dict_config)
                     dict_config["dense_layer_size"] = dict_config["dense_layer_size"][0:-1]
                     dict_config["nb_repeat"] = dict_config["nb_repeat"][0:-1]
                     dict_config["dropout"] = dict_config["dropout"][0:-1]

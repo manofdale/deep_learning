@@ -14,7 +14,7 @@ from keras.utils import np_utils
 
 from util import misc
 
-np.random.seed(1337)  # for reproducibility
+#np.random.seed(1337)  # for reproducibility
 
 
 # takes too much time to train
