@@ -740,14 +740,14 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                     k_lim -= 3
             if safe_to_use_old_weights:
                 print("usig old weights")
-                # construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)  # TODO implement tests
-                construct_cnn(dict_config)
+                model = construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)  # TODO implement tests
+                # model=construct_cnn(dict_config)
             else:
-                construct_cnn(dict_config)
+                model=construct_cnn(dict_config)
         else:  # crossover with other promising models, pick a random mate from the population
             children = cross_config(dict_config, population_configs[np.random.randint(0, len(population_configs))][1])
             dict_config = children[np.random.randint(0, 2)]
-            construct_cnn(dict_config)
+            model=construct_cnn(dict_config)
         if model is None:
             print("something is wrong with the config")
             return
