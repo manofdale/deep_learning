@@ -8,7 +8,7 @@ class Pack:
 
 
 trainer = hyperparameter_search.init_trainer()
-trainer.training_parameters.nb_epoch = 10
+trainer.training_parameters.nb_epoch = 40
 dict_config0 = {'bias_regularizers': [None, None, None], 'nb_pool': [2, 2], 'nb_conv': [3, 1, 3],
                 'final_activation': 'softmax', 'img_cols': 28, 'sgd_decay': 2.255626836893722e-06,
                 'dense_weight_regularizers': [None, None, None], 'sgd_momentum': 0.43162749108853093,
