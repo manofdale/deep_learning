@@ -39,18 +39,32 @@ dict_config2 = {'bias_regularizers': [None, None, None, None], 'nb_pool': [3], '
                 'dropout': [0.05581567092442845, 0.246871561047429298, 0.0575979640541265788, 0.4836863105510306,
                             0.04954334377523167], 'dense_activity_regularizers': [None, None, None, None],
                 'img_rows': 28, 'final_activation': 'softmax'}
+dict_config3 = {'nb_conv': [5, 3], 'sgd_momentum': 0.04509058440772208, 'img_cols': 28, 'border_mode': 'valid',
+                'dense_layer_size': [749, 879, 254, 864, 533], 'sgd_lr_init': 0.17006898785437682,
+                'sgd_nesterov': False, 'nb_filter': [32, 47], 'loss_function': 'categorical_crossentropy',
+                'activation': ['linear', 'relu', 'linear', 'relu', 'relu', 'relu', 'relu'],
+                'bias_regularizers': [None, None, None, None, None], 'nb_pool': [3],
+                'dropout': [0.05581567092442845, 0.2468715610474293, 0.05759796405412658, 0.4836863105510306,
+                            0.04954334377523167, 0.2192938549364467], 'final_activation': 'softmax',
+                'sgd_decay': 3.970867037476346e-06,
+                'dense_weight_regularizers': [None, None, None, ('l2', 0.00590578693693914), None],
+                'sgd_lr_divide': 1.6892790823754182, 'nb_classes': 47,
+                'dense_inits': ['uniform', 'glorot_uniform', 'uniform', 'glorot_uniform', 'uniform'],
+                'nb_repeat': [2, 2, 2, 2, 1, 1], 'dense_activity_regularizers': [None, None, None, None, None],
+                'img_rows': 28}
 
 for i in range(100):
     meta = Pack()
-    population_configs = [(0.41, dict_config0), (0.48151, dict_config2), (0.51916, dict_config)]
+    population_configs = [(0.41, dict_config0), (0.48151, dict_config2), (0.51916, dict_config),(0.53, dict_config3)]
     try:
-        hyperparameter_search.search_around_promising(meta, trainer, population_configs, 0.01, "51916")
+        hyperparameter_search.search_around_promising(meta, trainer, population_configs, 0.2, "53")
     except (KeyboardInterrupt, SystemExit):
         raise
     except Exception as e:
         print("this config caused an exception:")
         print(e)
         import traceback
+
         print(traceback.format_exc())
     finally:
         print(population_configs)

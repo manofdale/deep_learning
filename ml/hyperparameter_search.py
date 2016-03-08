@@ -677,7 +677,7 @@ def duplicate_config(config):
 def search_around_promising(meta, my_trainer, population_configs, best_score, checkpoint_name, n_itr=100):
     # TODO refactor
     population_size = 100
-    config = population_configs[2][1]  # start with three configs in the population, the last one being the best
+    config = population_configs[3][1]  # start with four configs in the population, the last one being the best
     itr = 0
     hard_limit = 7
     hidden_layer_limit = 1024
