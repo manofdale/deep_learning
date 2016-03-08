@@ -707,14 +707,13 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                 safe = mutate_config(dict_config)
             safe_to_use_old_weights = safe_to_use_old_weights and safe
             model = construct_cnn(dict_config)
-            if safe_to_use_old_weights and os.path.isfile(
+            '''if safe_to_use_old_weights and os.path.isfile(
                             "data/models/promising_cnn_config_test_%s_%d_incremental.hdf5" % (checkpoint_name, itr)):
                 model.load_weights(
                     "data/models/promising_cnn_config_test_%s_%d_incremental.hdf5" % (checkpoint_name, itr))
                 if itr < 2:
-                    itr += 1  # skip the first model
+                    itr += 1  # skip the first model'''
         elif np.random.uniform(0, 1) < 0.9:  # else, crossover
-            k_lim = find_number_of_layers(prev_config) - 2  # discard the final dense+activation layer and insert new
             if np.random.uniform(0, 1) < 0.5:  # mutate
                 temp_config = copy.deepcopy(dict_config)
                 while str(temp_config) == str(dict_config):
@@ -746,8 +745,8 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                     k_lim -= 3
             if safe_to_use_old_weights and old_model is not None:
                 print("skip using old weights for now")
-                # model = construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)  # TODO implement tests
-                model = construct_cnn(dict_config)
+                model = construct_cnn(dict_config, old_model=old_model, k_lim=k_lim)  # TODO implement tests
+                # model = construct_cnn(dict_config)
             else:
                 model = construct_cnn(dict_config)
         else:  # crossover with other promising models, pick a random mate from the population
@@ -783,8 +782,8 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                 safe_to_use_old_weights = True
                 if good_old_config is not None:
                     dict_config = copy.deepcopy(good_old_config)  # just revert back one step without doing anything
-                    model = construct_cnn(dict_config)
-                    model.load_weights("data/models/promising_cnn_config_test_%s_good_model.hdf5" % checkpoint_name)
+                    old_model = construct_cnn(dict_config)
+                    old_model.load_weights("data/models/promising_cnn_config_test_%s_good_model.hdf5" % checkpoint_name)
             elif np.random.uniform(0, 1) < 0.8:  # search around another promising config, exploration
                 print("revert back to a random config in population")
                 safe_to_use_old_weights = False
