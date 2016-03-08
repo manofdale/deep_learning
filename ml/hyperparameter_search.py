@@ -711,7 +711,8 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                             "data/models/promising_cnn_config_test_%s_%d_incremental.hdf5" % (checkpoint_name, itr)):
                 model.load_weights(
                     "data/models/promising_cnn_config_test_%s_%d_incremental.hdf5" % (checkpoint_name, itr))
-                itr += 1  # skip the first model
+                if itr < 2:
+                    itr += 1  # skip the first model
         elif np.random.uniform(0, 1) < 0.9:  # else, crossover
             k_lim = find_number_of_layers(prev_config) - 2  # discard the final dense+activation layer and insert new
             if np.random.uniform(0, 1) < 0.5:  # mutate
@@ -784,13 +785,17 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                     dict_config = copy.deepcopy(good_old_config)  # just revert back one step without doing anything
                     model = construct_cnn(dict_config)
                     model.load_weights("data/models/promising_cnn_config_test_%s_good_model.hdf5" % checkpoint_name)
-            else:  # search around another promising config, exploration
+            elif np.random.uniform(0, 1) < 0.8:  # search around another promising config, exploration
                 print("revert back to a random config in population")
                 safe_to_use_old_weights = False
                 dict_config = copy.deepcopy(population_configs[
                                                 np.random.randint(np.random.randint(1, len(population_configs) - 1),
                                                                   len(population_configs))][1])
-                print(population_configs)
+            else:
+                safe_to_use_old_weights = False
+                print("completely random config")
+                dict_config = random_cnn_config()
+            print(population_configs)
         else:
             print("found a good model")
             model.save_weights("data/models/promising_cnn_config_test_%s_good_model.hdf5" % checkpoint_name,
