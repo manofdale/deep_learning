@@ -1,5 +1,5 @@
 from ml import hyperparameter_search
-
+import time
 
 class Pack:
     def __init__(self):
@@ -59,6 +59,11 @@ for i in range(100):
     try:
         hyperparameter_search.search_around_promising(meta, trainer, population_configs, 0.2, "53")
     except (KeyboardInterrupt, SystemExit):
+        with open("data/dataset/meta_near_5196_incremental", "a") as meta_file:
+            for s, c in zip(meta.scores, meta.configs):
+                meta_file.write(str(s) + ":")
+                meta_file.write(str(c) + "\n")
+            time.sleep(3)
         raise
     except Exception as e:
         print("this config caused an exception:")

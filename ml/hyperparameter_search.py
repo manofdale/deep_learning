@@ -98,7 +98,7 @@ class MyModelCheckpoint(ModelCheckpoint):
             if self.patience_ctr > self.patience:
                 lr = self.model.optimizer.get_config()["lr"]
                 if lr < 0.001:
-                    lr = np.random.uniform(0, 1) * 0.2
+                    lr = np.random.uniform(0, 1) * 0.12
                     print("assigning new random learning rate:%f" % lr)
                     K.set_value(self.model.optimizer.lr, lr)
                 else:
@@ -784,7 +784,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                     dict_config = copy.deepcopy(good_old_config)  # just revert back one step without doing anything
                     old_model = construct_cnn(dict_config)
                     old_model.load_weights("data/models/promising_cnn_config_test_%s_good_model.hdf5" % checkpoint_name)
-            elif np.random.uniform(0, 1) < 0.8:  # search around another promising config, exploration
+            elif np.random.uniform(0, 1) < 0.5:  # search around another promising config, exploration
                 print("revert back to a random config in population")
                 safe_to_use_old_weights = False
                 dict_config = copy.deepcopy(population_configs[
