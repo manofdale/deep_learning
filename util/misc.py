@@ -1411,3 +1411,20 @@ def mutate_list(random_vals, low=0, high=0, replace=np.random.uniform):
     print("mutated into:")
     print(random_vals)
     return random_vals
+
+
+def recover_indices(unordered_range):
+    """recover the indices to sort the unordered range k to n, where all i in [k,n] must exist"""
+    k = min(unordered_range)
+    return [m - k for m in unordered_range]
+
+
+def map_to_indices(unordered_range, new_indices):
+    i = 0
+    print(new_indices)
+    sorted_range = [0] * len(unordered_range)
+    for k in unordered_range:
+        print(k)
+        sorted_range[new_indices[i]] = k
+        i += 1
+    return sorted_range
