@@ -799,7 +799,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
             print("found a good model")
             model.save_weights("data/models/promising_cnn_config_test_%s_good_model.hdf5" % checkpoint_name,
                                overwrite=True)
-            good_old_config = dict_config
+            good_old_config = copy.deepcopy(dict_config)
             safe_to_use_old_weights = True
             if len(population_configs) < population_size:
                 heapq.heappush(population_configs, (meta_best, dict_config))
