@@ -714,6 +714,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                 if itr < 2:
                     itr += 1  # skip the first model'''
         elif np.random.uniform(0, 1) < 0.9:  # else, crossover
+            k_lim = find_number_of_layers(dict_config) - 2
             if np.random.uniform(0, 1) < 0.5:  # mutate
                 temp_config = copy.deepcopy(dict_config)
                 while str(temp_config) == str(dict_config):
@@ -724,7 +725,6 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                 safe = duplicate_config(dict_config)
                 safe_to_use_old_weights = safe_to_use_old_weights and safe
             else:
-                k_lim = find_number_of_layers(dict_config) - 2
                 if np.random.uniform(0, 1) < 0.8:  # increase depth
                     print("add a new dense layer to old config:")
                     print(dict_config)
