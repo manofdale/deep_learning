@@ -777,7 +777,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
             elif np.random.uniform(0, 1) < meta_best:  # replace the worst config if the performance is not that bad
                 print("heapreplace")
                 heapq.heapreplace(population_configs, (meta_best, dict_config))
-            if np.random.uniform(0, 1) < 0.2:  # exploitation
+            if np.random.uniform(0, 1) < 0.5:  # exploitation
                 print("revert back to old config")
                 safe_to_use_old_weights = True
                 if good_old_config is not None:
