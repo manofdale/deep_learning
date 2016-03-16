@@ -57,16 +57,16 @@ population_configs = [(0.41, dict_config0), (0.48151, dict_config2), (0.51916, d
 for i in range(100):
     meta = Pack()
     try:
-        hyperparameter_search.search_around_promising(meta, trainer, population_configs, 0.2, "53")
+        hyperparameter_search.search_around_promising(meta, trainer, population_configs, 0.2, "53_%d"%i)
     except (KeyboardInterrupt, SystemExit):
-        with open("data/dataset/meta_near_5196_incremental", "a") as meta_file:
+        with open("data/dataset/meta_near_51916_incremental", "a") as meta_file:
             for s, c in zip(meta.scores, meta.configs):
                 meta_file.write(str(s) + ":")
                 meta_file.write(str(c) + "\n")
             time.sleep(3)
         raise
     except Exception as e:
-        print("this config caused an exception:")
+        print("this config caused an exception:")  # discard meta configs just to be on the safe side
         print(e)
         import traceback
 
