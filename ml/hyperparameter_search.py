@@ -656,7 +656,7 @@ def duplicate_config(config):
         config["nb_filter"] += nb_filters[p:]
         config["activation"] = cnn_activations + cnn_activations[p:] + config["activation"][len(nb_pools) + 1:]
         p = max(-len(nb_pools), p)
-        config["nb_pool"] += nb_pools[p:]
+        config["nb_pool"] += 1+nb_pools[p:]//3
         config["nb_repeat"] = cnn_nb_repeats + cnn_nb_repeats[p:] + config["nb_repeat"][len(nb_pools):]
         config["dropout"] = cnn_dropouts + cnn_dropouts[p:] + config["dropout"][len(nb_pools):]
         return False
@@ -777,14 +777,14 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
             elif np.random.uniform(0, 1) < meta_best:  # replace the worst config if the performance is not that bad
                 print("heapreplace")
                 heapq.heapreplace(population_configs, (meta_best, dict_config))
-            if np.random.uniform(0, 1) < 0.5:  # exploitation
+            if np.random.uniform(0, 1) < 0.3:  # exploitation
                 print("revert back to old config")
                 safe_to_use_old_weights = True
                 if good_old_config is not None:
                     dict_config = copy.deepcopy(good_old_config)  # just revert back one step without doing anything
                     old_model = construct_cnn(dict_config)
                     old_model.load_weights("data/models/promising_cnn_config_test_%s_good_model.hdf5" % checkpoint_name)
-            elif np.random.uniform(0, 1) < 0.5:  # search around another promising config, exploration
+            elif np.random.uniform(0, 1) < 0.3:  # search around another promising config, exploration
                 print("revert back to a random config in population")
                 safe_to_use_old_weights = False
                 dict_config = copy.deepcopy(population_configs[
