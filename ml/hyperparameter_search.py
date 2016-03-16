@@ -110,8 +110,8 @@ class MyModelCheckpoint(ModelCheckpoint):
 
 def add_convolution(model, nb_filters, nb_conv, nb_pool, dropout_r, activation_func, r, old_model=None, k=0, k_lim=0):
     for i in range(r):  # no more than limit
-        if old_model is not None and k + 2 * (i + 1) <= k_lim:
-            model.add(Convolution2D(nb_filters, nb_conv, nb_conv, weights=old_model.layers[k + i].get_weights()))
+        if old_model is not None and k + 2 * i + 2 < k_lim:
+            model.add(Convolution2D(nb_filters, nb_conv, nb_conv, weights=old_model.layers[k + 2 * i].get_weights()))
         else:
             model.add(Convolution2D(nb_filters, nb_conv, nb_conv))
         model.add(Activation(activation_func))
@@ -134,11 +134,11 @@ def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r, ac
     :param init:
     :param old_model: optionally init weight from here
     :param k:
-    :param k_lim: after current layer number k+i >= k_lim, do not init with old weights
+    :param k_lim: after current layer number k+i*3 >= k_lim, do not init with old weights
     """
     for i in range(r):
-        if old_model is not None and k + (i + 1) * 3 <= k_lim:
-            model.add(Dense(hidden_layer_size, weights=old_model.layers[k + i].get_weights(),
+        if old_model is not None and k + i * 3 < k_lim:
+            model.add(Dense(hidden_layer_size, weights=old_model.layers[k + 3 * i].get_weights(),
                             W_regularizer=f_or_default(weight_r),
                             activity_regularizer=f_or_default(act_r), b_regularizer=f_or_default(b_r)))
         else:
@@ -656,7 +656,7 @@ def duplicate_config(config):
         config["nb_filter"] += nb_filters[p:]
         config["activation"] = cnn_activations + cnn_activations[p:] + config["activation"][len(nb_pools) + 1:]
         p = max(-len(nb_pools), p)
-        config["nb_pool"] += 1+nb_pools[p:]//3
+        config["nb_pool"] += 1 + nb_pools[p:] // 3
         config["nb_repeat"] = cnn_nb_repeats + cnn_nb_repeats[p:] + config["nb_repeat"][len(nb_pools):]
         config["dropout"] = cnn_dropouts + cnn_dropouts[p:] + config["dropout"][len(nb_pools):]
         return False
@@ -714,14 +714,14 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                 if itr < 2:
                     itr += 1  # skip the first model'''
         elif np.random.uniform(0, 1) < 0.9:  # else, crossover
-            k_lim = find_number_of_layers(dict_config) - 2
+            k_lim = find_number_of_layers(dict_config) - 1
             if np.random.uniform(0, 1) < 0.5:  # mutate
                 temp_config = copy.deepcopy(dict_config)
                 while str(temp_config) == str(dict_config):
                     safe = mutate_config(dict_config)
                 safe_to_use_old_weights = safe_to_use_old_weights and safe
 
-            elif np.random.uniform(0, 1) < 0.2:  # duplicate
+            elif np.random.uniform(0, 1) < 0.4:  # duplicate
                 safe = duplicate_config(dict_config)
                 safe_to_use_old_weights = safe_to_use_old_weights and safe
             else:
