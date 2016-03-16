@@ -53,9 +53,9 @@ dict_config3 = {'nb_conv': [5, 3], 'sgd_momentum': 0.04509058440772208, 'img_col
                 'nb_repeat': [2, 2, 2, 2, 1, 1], 'dense_activity_regularizers': [None, None, None, None, None],
                 'img_rows': 28}
 
+population_configs = [(0.41, dict_config0), (0.48151, dict_config2), (0.51916, dict_config),(0.53, dict_config3)]
 for i in range(100):
     meta = Pack()
-    population_configs = [(0.41, dict_config0), (0.48151, dict_config2), (0.51916, dict_config),(0.53, dict_config3)]
     try:
         hyperparameter_search.search_around_promising(meta, trainer, population_configs, 0.2, "53")
     except (KeyboardInterrupt, SystemExit):
