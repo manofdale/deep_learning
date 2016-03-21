@@ -71,7 +71,7 @@ def score_training_history(log_history, patience=5):  # patience is the number o
 
 
 class MyModelCheckpoint(ModelCheckpoint):
-    def __init__(self, filepath, best_of_the_bests=np.inf, monitor='val_acc', verbose=0,
+    def __init__(self, filepath=None, best_of_the_bests=np.inf, monitor='val_acc', verbose=0,
                  save_best_only=False, mode='auto', lr_divide=3.0, drop_divide=0.975, patience=3.0):
         super(MyModelCheckpoint, self).__init__(filepath, monitor=monitor, verbose=verbose,
                                                 save_best_only=save_best_only, mode=mode)
@@ -98,7 +98,7 @@ class MyModelCheckpoint(ModelCheckpoint):
             if self.patience_ctr > self.patience:
                 lr = self.model.optimizer.get_config()["lr"]
                 if lr < 0.001:
-                    lr = np.random.uniform(0, 1) * 0.12
+                    lr = np.random.uniform(0, 1) * 0.04
                     print("assigning new random learning rate:%f" % lr)
                     K.set_value(self.model.optimizer.lr, lr)
                 else:
@@ -153,7 +153,7 @@ def add_dense(model, hidden_layer_size, activation_function, dropout_rate, r, ac
 def random_cnn_config(img_rows=28, img_cols=28, dense_limit=4, cnn_limit=6, nb_filters=42,
                       nb_pool=2,
                       nb_conv=3, nb_classes=47, lr_limit=1.5, momentum_limit=0.9, cnn_dropout_limit=0.5,
-                      dropout_limit=0.5, hidden_layer_limit=1024,
+                      dropout_limit=0.5, hidden_layer_limit=2048,
                       inits=['zero', 'glorot_uniform', 'normal', 'glorot_uniform', 'uniform', 'glorot_uniform',
                              'he_uniform', 'he_normal', 'glorot_normal', 'glorot_uniform', 'he_normal',
                              'glorot_uniform', 'he_uniform', 'glorot_uniform', 'glorot_uniform', 'glorot_uniform', ],
@@ -207,10 +207,10 @@ def random_add_cnn_to_config(config, cnn_limit, cnn_layer_n, nb_conv, nb_filters
     for i in range(cnn_limit):
         cnn_layer_n += 1
         conv = 2 * random.randint(0, nb_conv) + 1
-        pool = 2 + random.randint(0, nb_pool)
+        pool = 1 + random.randint(0, nb_pool)
         hard_limit //= pool
         print(hard_limit, pool, conv)
-        if np.random.uniform(0, 1) < 0.2 or hard_limit < 4:
+        if np.random.uniform(0, 1) < 0.1 or hard_limit < 4:
             break
         activation_func = cnn_activation_functions[random.randint(0, len(cnn_activation_functions) - 1)]
         dropout_rate = np.random.uniform(0, 1) * cnn_dropout_limit * np.random.uniform(0, 1)
@@ -229,7 +229,7 @@ def random_add_cnn_to_config(config, cnn_limit, cnn_layer_n, nb_conv, nb_filters
 def random_add_dense_to_config(config, dense_limit, hard_limit, hidden_layer_limit, inits, dense_activation_functions,
                                regularizers, dropout_limit, activity_regularizers):
     for i in range(dense_limit):
-        if random.randint(0, 20) < 3:  # prevent from getting too big
+        if random.randint(0, 20) < 6:  # prevent from getting too big
             break
         hidden_layer_size = random.randint(hard_limit ** 2, hidden_layer_limit)
         dropout_rate = np.random.uniform(0, 1) * dropout_limit
@@ -713,7 +713,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
                     "data/models/promising_cnn_config_test_%s_%d_incremental.hdf5" % (checkpoint_name, itr))
                 if itr < 2:
                     itr += 1  # skip the first model'''
-        elif np.random.uniform(0, 1) < 0.9:  # else, crossover
+        elif np.random.uniform(0, 1) < 0.5:  # else, crossover
             k_lim = find_number_of_layers(dict_config) - 1
             if np.random.uniform(0, 1) < 0.5:  # mutate
                 temp_config = copy.deepcopy(dict_config)
@@ -759,7 +759,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
         my_trainer.prepare_for_training(model=model, reshape_input=cnn_model.reshape_input,
                                         reshape_output=cnn_model.reshape_str_output)
         save_best = MyModelCheckpoint(
-            filepath="data/models/promising_cnn_config_test_%s_%d_incremental.hdf5" % (checkpoint_name, itr),
+            filepath="data/models/promising_cnn_config.hdf5",
             best_of_the_bests=best_of_the_bests, verbose=1,
             save_best_only=True, patience=1, lr_divide=dict_config["sgd_lr_divide"])
         early_stop = EarlyStopping(monitor='val_acc', patience=test_patience, verbose=0, mode='auto')
@@ -771,13 +771,13 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
         meta_score, meta_best = score_training_history(save_best.log_history, patience=test_patience)
         if not save_best.monitor_op(save_best.best_of_the_bests, best_of_the_bests):
             print("score of this training: %f. Best score so far: %f" % (meta_best, best_of_the_bests))
-            if len(population_configs) < population_size:
+            if len(population_configs) < population_size and meta_best >= 0.25:
                 print("heappush")
                 heapq.heappush(population_configs, (meta_best, dict_config))
             elif np.random.uniform(0, 1) < meta_best:  # replace the worst config if the performance is not that bad
                 print("heapreplace")
                 heapq.heapreplace(population_configs, (meta_best, dict_config))
-            if np.random.uniform(0, 1) < 0.3:  # exploitation
+            if np.random.uniform(0, 1) < 0.2:  # exploitation
                 print("revert back to old config")
                 safe_to_use_old_weights = True
                 if good_old_config is not None:
