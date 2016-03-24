@@ -378,6 +378,7 @@ def construct_cnn(dict_config, old_model=None, k_lim=0):
 
     for j, k in enumerate(dense_layer_sizes):
         i += 1
+        """ index out of range{'nb_conv': [5, 3, 5, 3], 'sgd_momentum': 0.04509058440772208, 'img_cols': 28, 'border_mode': 'valid', 'dense_layer_size': [749, 879, 254, 864, 533], 'sgd_lr_init': 0.17006898785437682, 'sgd_nesterov': False, 'nb_filter': [32, 47, 32, 47], 'loss_function': 'categorical_crossentropy', 'activation': ['linear', 'relu', 'linear', 'relu', 'linear', 'relu', 'relu', 'relu', 'relu'], 'bias_regularizers': [None, None, None, None, None], 'nb_pool': [3, 2], 'dropout': [0.5217251549215882, 0.35891646176856873, 0.136830255793676, 0.4836863105510306, 0.04954334377523167, 0.2192938549364467], 'final_activation': 'softmax', 'sgd_decay': 3.970867037476346e-06, 'dense_weight_regularizers': [None, None, None, ('l2', 0.00590578693693914), None], 'sgd_lr_divide': 1.6892790823754182, 'nb_classes': 47, 'dense_inits': ['uniform', 'glorot_uniform', 'uniform', 'glorot_uniform', 'uniform'], 'nb_repeat': [2, 2, 2, 2, 1, 1], 'dense_activity_regularizers': [None, None, None, None, None], 'img_rows': 28}"""
         add_dense(model, k, activation_funcs[i], dropout_rates[i - 1], nb_repeats[i - 1], act_rs[j], weight_rs[j],
                   b_rs[j], init=inits[j], old_model=old_model, k=layer_k, k_lim=k_lim)
         layer_k += nb_repeats[i - 1] * 3
@@ -655,6 +656,7 @@ def duplicate_config(config):
         config["nb_conv"] += nb_convs[p:]
         config["nb_filter"] += nb_filters[p:]
         config["activation"] = cnn_activations + cnn_activations[p:] + config["activation"][len(nb_pools) + 1:]
+        """ index out of range{'nb_conv': [5, 3, 5, 3], 'sgd_momentum': 0.04509058440772208, 'img_cols': 28, 'border_mode': 'valid', 'dense_layer_size': [749, 879, 254, 864, 533], 'sgd_lr_init': 0.17006898785437682, 'sgd_nesterov': False, 'nb_filter': [32, 47, 32, 47], 'loss_function': 'categorical_crossentropy', 'activation': ['linear', 'relu', 'linear', 'relu', 'linear', 'relu', 'relu', 'relu', 'relu'], 'bias_regularizers': [None, None, None, None, None], 'nb_pool': [3, 2], 'dropout': [0.5217251549215882, 0.35891646176856873, 0.136830255793676, 0.4836863105510306, 0.04954334377523167, 0.2192938549364467], 'final_activation': 'softmax', 'sgd_decay': 3.970867037476346e-06, 'dense_weight_regularizers': [None, None, None, ('l2', 0.00590578693693914), None], 'sgd_lr_divide': 1.6892790823754182, 'nb_classes': 47, 'dense_inits': ['uniform', 'glorot_uniform', 'uniform', 'glorot_uniform', 'uniform'], 'nb_repeat': [2, 2, 2, 2, 1, 1], 'dense_activity_regularizers': [None, None, None, None, None], 'img_rows': 28}"""
         p = max(-len(nb_pools), p)
         config["nb_pool"] += [1 + k // 3 for k in nb_pools[p:]]
         config["nb_repeat"] = cnn_nb_repeats + cnn_nb_repeats[p:] + config["nb_repeat"][len(nb_pools):]
@@ -677,7 +679,7 @@ def duplicate_config(config):
 def search_around_promising(meta, my_trainer, population_configs, best_score, checkpoint_name, n_itr=100):
     # TODO refactor
     population_size = 100
-    config = population_configs[3][1]  # start with four configs in the population, the last one being the best
+    config = population_configs[np.random.randint(0, len(population_configs))][1]
     itr = 0
     hard_limit = 7
     hidden_layer_limit = 1024
@@ -771,7 +773,7 @@ def search_around_promising(meta, my_trainer, population_configs, best_score, ch
         meta_score, meta_best = score_training_history(save_best.log_history, patience=test_patience)
         if not save_best.monitor_op(save_best.best_of_the_bests, best_of_the_bests):
             print("score of this training: %f. Best score so far: %f" % (meta_best, best_of_the_bests))
-            if len(population_configs) < population_size and meta_best >= 0.25:
+            if len(population_configs) < population_size and (meta_best >= 0.25 or np.random.uniform(0, 1) < meta_best):
                 print("heappush")
                 heapq.heappush(population_configs, (meta_best, dict_config))
             elif np.random.uniform(0, 1) < meta_best:  # replace the worst config if the performance is not that bad

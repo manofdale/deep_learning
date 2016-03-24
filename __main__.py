@@ -1,6 +1,7 @@
 from ml import hyperparameter_search
 import time
 
+
 class Pack:
     def __init__(self):
         self.scores = []
@@ -9,6 +10,17 @@ class Pack:
 
 trainer = hyperparameter_search.init_trainer()
 trainer.training_parameters.nb_epoch = 100
+config_slow = {'nb_conv': [5, 3], 'sgd_momentum': 0.04509058440772208, 'img_cols': 28, 'border_mode': 'valid',
+                'dense_layer_size': [749, 879, 254, 864], 'sgd_lr_init': 0.17006898785437682, 'sgd_nesterov': False,
+                'nb_filter': [40, 47], 'loss_function': 'categorical_crossentropy',
+                'activation': ['linear', 'relu', 'linear', 'relu', 'relu', 'relu'],
+                'bias_regularizers': [None, None, None, None], 'nb_pool': [3],
+                'dropout': [0.18597089646548612, 0.2468715610474293, 0.05759796405412658, 0.4836863105510306,
+                            0.04954334377523167], 'final_activation': 'softmax', 'sgd_decay': 3.970867037476346e-06,
+                'dense_weight_regularizers': [None, None, None, ('l2', 0.00590578693693914)],
+                'sgd_lr_divide': 3.304080538530154, 'nb_classes': 47,
+                'dense_inits': ['uniform', 'glorot_uniform', 'uniform', 'glorot_uniform'], 'nb_repeat': [2, 2, 2, 2, 1],
+                'dense_activity_regularizers': [None, None, None, None], 'img_rows': 28}
 dict_config0 = {'bias_regularizers': [None, None, None], 'nb_pool': [2, 2], 'nb_conv': [3, 1, 3],
                 'final_activation': 'softmax', 'img_cols': 28, 'sgd_decay': 2.255626836893722e-06,
                 'dense_weight_regularizers': [None, None, None], 'sgd_momentum': 0.43162749108853093,
@@ -53,11 +65,11 @@ dict_config3 = {'nb_conv': [5, 3], 'sgd_momentum': 0.04509058440772208, 'img_col
                 'nb_repeat': [2, 2, 2, 2, 1, 1], 'dense_activity_regularizers': [None, None, None, None, None],
                 'img_rows': 28}
 
-population_configs = [(0.41, dict_config0), (0.48151, dict_config2), (0.51916, dict_config),(0.53, dict_config3)]
+population_configs = [(0.41, dict_config0), (0.48151, dict_config2), (0.51916, dict_config), (0.53, dict_config3)]
 for i in range(100):
     meta = Pack()
     try:
-        hyperparameter_search.search_around_promising(meta, trainer, population_configs, 0.2, "53_%d"%i)
+        hyperparameter_search.search_around_promising(meta, trainer, population_configs, 0.2, "53_%d" % i)
     except (KeyboardInterrupt, SystemExit):
         with open("data/dataset/meta_near_51916_incremental", "a") as meta_file:
             for s, c in zip(meta.scores, meta.configs):
@@ -73,7 +85,7 @@ for i in range(100):
         print(traceback.format_exc())
     finally:
         print(population_configs)
-        with open("data/dataset/meta_near_5196_incremental", "a") as meta_file:
+        with open("data/dataset/meta_near_51916_incremental", "a") as meta_file:
             for s, c in zip(meta.scores, meta.configs):
                 meta_file.write(str(s) + ":")
                 meta_file.write(str(c) + "\n")
